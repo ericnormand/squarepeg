@@ -1,6 +1,6 @@
-(ns peg.derived-rules
-  (:use peg.peg)
-  (:use peg.grammar))
+(ns clj-peg.derived-rules
+  (:use clj-peg.peg)
+  (:use clj-peg.grammar))
 
 ; optional matcher
 (defn make-opt-matcher [rule]

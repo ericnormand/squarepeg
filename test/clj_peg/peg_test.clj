@@ -1,7 +1,7 @@
-(ns peg.peg_test
-  (:use [peg.peg] :reload-all)
-  (:use [peg.grammar])
-  (:use [peg.derived-rules])
+(ns clj-peg.peg_test
+  (:use [clj-peg.peg] :reload-all)
+  (:use [clj-peg.grammar])
+  (:use [clj-peg.derived-rules])
   (:use [clojure.test]))
 
 (def always (make-pred-matcher (constantly true)))

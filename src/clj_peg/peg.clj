@@ -1,4 +1,4 @@
-(ns peg.peg)
+(ns clj-peg.peg)
 
 ;; A rule is a function [input bindings] -> {:i seq :b {symbol vec} :r vec} OR nil to signal failure
 ;; input is a seq of the rest of the input

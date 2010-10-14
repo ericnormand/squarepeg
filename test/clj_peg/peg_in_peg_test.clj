@@ -1,8 +1,8 @@
-(ns peg.peg_in_peg_test
-  (:use [peg.peg])
-  (:use [peg.grammar])
-  (:use [peg.derived-rules])
-  (:use [peg.peg-in-peg] :reload-all)
+(ns clj-peg.peg_in_peg_test
+  (:use [clj-peg.peg])
+  (:use [clj-peg.grammar])
+  (:use [clj-peg.derived-rules])
+  (:use [clj-peg.peg-in-peg] :reload-all)
   (:use [clojure.test]))
 
 (deftest test-keyword-literals

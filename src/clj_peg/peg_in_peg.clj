@@ -1,7 +1,7 @@
-(ns peg.peg-in-peg
-  (:use peg.peg)
-  (:use peg.grammar)
-  (:use peg.derived-rules))
+(ns clj-peg.peg-in-peg
+  (:use clj-peg.peg)
+  (:use clj-peg.grammar)
+  (:use clj-peg.derived-rules))
 
 (def keyword-list '(= -> ? * + => -- /))
 

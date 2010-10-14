@@ -1,4 +1,4 @@
-(ns peg.grammar)
+(ns clj-peg.grammar)
 
 ;; we can define a new type of rule that looks up another rule in the grammar
 ;; but we don't want to give it any bindings or let it alter the bindings
