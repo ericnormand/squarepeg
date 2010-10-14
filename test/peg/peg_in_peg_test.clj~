@@ -1,0 +1,6 @@
+(ns peg.peg_test
+  (:use [peg.peg])
+  (:use [peg.grammar])
+  (:use [peg.derived-rules])
+  (:use [peg.peg-in-peg] :reload-all)
+  (:use [clojure.test]))
