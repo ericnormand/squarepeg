@@ -19,17 +19,17 @@
 ; literal matcher
 (defn make-literal-matcher [l]
   (make-sequence-matcher
-   [(make-bind (make-rule-matcher #'anything) '-match-)
+   [(make-bind (make-rule-matcher 'clj-peg.derived-rules/anything) '-match-)
     (make-pred-matcher (fn [b] (let [i (first (b '-match-))] (= i l))))]))
 
 ; whitespace
 (def whitespace
   (make-alt-matcher
-   (map make-literal-matcher [\newline \space \tab])))
+   (doall (map make-literal-matcher [\newline \space \tab]))))
 
 ; string matcher
 (defn make-string-matcher [s]
-  (make-sequence-matcher (map make-literal-matcher s)))
+  (make-sequence-matcher (doall (map make-literal-matcher s))))
 
 (def end
-  (make-not (make-rule-matcher #'anything)))
+  (make-not (make-rule-matcher 'clj-peg.derived-rules/anything)))

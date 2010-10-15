@@ -15,13 +15,12 @@
   (is (literal-slash '(/) {}))
   (is (literal-- '(--) {})))
 
-
 (deftest test-keyword-rule
    (dorun
     (map #(is (keyword-match [%] {}))
-	 keyword-list)))
+	 keyword-list))
+   (is (not (keyword-match ['abc] {}))))
 
-(comment
  (deftest test-variable
    (is (= ['hh] (:r (variable ['hh] {}))))
    (is (not (variable [] {})))
@@ -43,10 +42,10 @@
    (is (not ((first (:r (string-match ["abc"] {}))) "acb" {}))))
 
  (deftest test-rule-match
-   (is (ifn? (first (:r (rule-match ['anything] {})))))
+   (is (ifn? (first (:r (rule-match ['clj-peg.derived-rules/anything] {})))))
    (is (not (rule-match [0 3] {})))
-   (is (= [1] (:r ((first (:r (rule-match ['anything] {}))) [1] {}))))
-   (is (not ((first (:r (rule-match ['end] {}))) [1] {}))))
+   (is (= [1] (:r ((first (:r (rule-match ['clj-peg.derived-rules/anything] {}))) [1] {}))))
+   (is (not ((first (:r (rule-match ['clj-peg.derived-rules/end] {}))) [1] {}))))
 
  (deftest test-list
    (is (not (list-match [1] {})))
@@ -58,8 +57,8 @@
 
  (deftest test-parenthesis
    (is (not (parenthesis [1] {})))
-   (is (= [1 2 3] (:r ((first (:r (parenthesis [['anything 'anything 'anything]] {}))) [1 2 3] {}))))
-   (is (= [3] ((:b ((first (:r (parenthesis '([anything anything anything => b]) {}))) [1 2 3] {})) 'b))))
+   (is (= [1 2 3] (:r ((first (:r (parenthesis [['clj-peg.derived-rules/anything 'clj-peg.derived-rules/anything 'clj-peg.derived-rules/anything]] {}))) [1 2 3] {}))))
+   (is (= [3] ((:b ((first (:r (parenthesis '([clj-peg.derived-rules/anything clj-peg.derived-rules/anything clj-peg.derived-rules/anything => b]) {}))) [1 2 3] {})) 'b))))
 
  (deftest test-predicate
    (is (not (predicate [1] {})))
@@ -84,21 +83,24 @@
    (is (rule-element-atomic '(-- anything) {})))
 
  (deftest test-1-o-m
-   (is (one-or-more '(anything +) {}))
+   (is (one-or-more '(clj-peg.derived-rules/anything +) {}))
    (is (not (one-or-more '(anything) {})))
    (is (not (one-or-more '(anything anything +) {})))
-   (is (= [1 2 3] (:r ((first (:r (one-or-more '(anything +) {}))) [1 2 3] {})))))
+   (is (= [1 2 3] (:r ((first (:r (one-or-more '(clj-peg.derived-rules/anything +) {}))) [1 2 3] {})))))
 
  (deftest test-not
-   (is (not-rule '(-- anything) {}))
-   (is (not (not-rule '(anything) {})))
-   (is ((first (:r (not-rule '(-- anything) {}))) [] {}))
-   (is (not ((first (:r (not-rule '(-- anything) {}))) [1] {}))))
+   (let [nr (not-rule '(-- clj-peg.derived-rules/anything) {})]
+    (is nr)
+    (is (not (not-rule '(anything) {})))
+    (is ((first (:r nr)) [] {}))
+    (is (not ((first (:r nr)) [1] {})))))
 
  (deftest test-0-o-m
-   (is (zero-or-more '(anything *) {}))
-   (is ((first (:r (zero-or-more '(anything *) {}))) [] {}))
-   (is ((first (:r (zero-or-more '(anything *) {}))) [1] {}))
-   (is ((first (:r (zero-or-more '(anything *) {}))) [1 2] {})))
+   (let [z (zero-or-more '(clj-peg.derived-rules/anything *) {})]
+    (is z)
+    (is ((first (:r z)) [] {}))
+    (is ((first (:r z)) [1] {}))
+    (is ((first (:r z)) [1 2] {})))
+   )
 
- )
+ 
