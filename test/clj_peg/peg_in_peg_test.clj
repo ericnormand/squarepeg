@@ -1,4 +1,4 @@
-(ns clj-peg.peg_in_peg_test
+(ns clj-peg.peg-in-peg-test
   (:use [clj-peg.peg])
   (:use [clj-peg.grammar])
   (:use [clj-peg.derived-rules])
@@ -17,29 +17,20 @@
 
 (deftest test-keyword-rule
    (dorun
-    (map #(is (keyword-match [%] {}))
+    (map #(is (peg-keyword [%] {}))
 	 keyword-list))
-   (is (not (keyword-match ['abc] {}))))
+   (is (not (peg-keyword ['abc] {}))))
 
  (deftest test-variable
    (is (= ['hh] (:r (variable ['hh] {}))))
    (is (not (variable [] {})))
    (is (not (variable [0] {}))))
 
- (deftest test-string
-   (is (= ["abc"] (:r (string ["abc"] {}))))
-   (is (not (string [5] {}))))
-
- (deftest test-symbol
-   (is (= ['hh] (:r (symbol-match ['hh] {}))))
-   (is (not (symbol-match [] {})))
-   (is (not (symbol-match [0] {}))))
-
- (deftest test-string-match
-   (is (not (string-match [1] {})))
-   (is (ifn? (first (:r (string-match ["abc"] {})))))
-   (is (= (vec "abc") (:r ((first (:r (string-match ["abc"] {}))) "abc" {}))))
-   (is (not ((first (:r (string-match ["abc"] {}))) "acb" {}))))
+  (deftest test-string-match
+   (is (not (string-matcher [1] {})))
+   (is (ifn? (first (:r (string-matcher ["abc"] {})))))
+   (is (= (vec "abc") (:r ((first (:r (string-matcher ["abc"] {}))) "abc" {}))))
+   (is (not ((first (:r (string-matcher ["abc"] {}))) "acb" {}))))
 
  (deftest test-rule-match
    (is (ifn? (first (:r (rule-match ['clj-peg.derived-rules/anything] {})))))
@@ -47,15 +38,7 @@
    (is (= [1] (:r ((first (:r (rule-match ['clj-peg.derived-rules/anything] {}))) [1] {}))))
    (is (not ((first (:r (rule-match ['clj-peg.derived-rules/end] {}))) [1] {}))))
 
- (deftest test-list
-   (is (not (list-match [1] {})))
-   (is (= ['(1 2 3)] (:r (list-match ['(1 2 3)] {})))))
-
- (deftest test-vec
-   (is (not (vec-match [1] {})))
-   (is (= [[1 2 3]] (:r (vec-match [[1 2 3]] {})))))
-
- (deftest test-parenthesis
+  (deftest test-parenthesis
    (is (not (parenthesis [1] {})))
    (is (= [1 2 3] (:r ((first (:r (parenthesis [['clj-peg.derived-rules/anything 'clj-peg.derived-rules/anything 'clj-peg.derived-rules/anything]] {}))) [1 2 3] {}))))
    (is (= [3] ((:b ((first (:r (parenthesis '([clj-peg.derived-rules/anything clj-peg.derived-rules/anything clj-peg.derived-rules/anything => b]) {}))) [1 2 3] {})) 'b))))
@@ -100,7 +83,6 @@
     (is z)
     (is ((first (:r z)) [] {}))
     (is ((first (:r z)) [1] {}))
-    (is ((first (:r z)) [1 2] {})))
-   )
+    (is ((first (:r z)) [1 2] {}))))
 
  

@@ -33,3 +33,22 @@
 
 (def end
   (make-not (make-rule-matcher 'clj-peg.derived-rules/anything)))
+
+(defmacro defpredrule [name f]
+  `(def ~name
+	(make-sequence-matcher
+	 [(make-bind (make-rule-matcher 'clj-peg.derived-rules/anything) '-match-)
+	  (make-pred-matcher  
+	   (fn [b#] (let [x# (first (b# '-match-))]
+		      (~f x#))))])))
+
+(defpredrule match-string string?)
+(defpredrule match-number number?)
+(defpredrule match-integer integer?)
+(defpredrule match-float float?)
+(defpredrule match-symbol symbol?)
+(defpredrule match-keyword keyword?)
+(defpredrule match-char char?)
+(defpredrule match-vec vector?)
+(defpredrule match-list list?)
+(defpredrule match-hash map?)

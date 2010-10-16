@@ -61,9 +61,10 @@
      (make-return
       (make-sequence-matcher
        [(make-zero-or-more-matcher
-	 (make-sequence-matcher [(make-rule-matcher 'clj-peg.peg-in-peg/sequence-match)
-				 (make-rule-matcher 'clj-peg.peg-in-peg/literal-slash)]))
-	(make-rule-matcher  'clj-peg.peg-in-peg/sequence-match)])
+	 (make-sequence-matcher
+	  [(make-rule-matcher 'clj-peg.peg-in-peg/sequence-match)
+	   (make-rule-matcher 'clj-peg.peg-in-peg/literal-slash)]))
+	(make-rule-matcher 'clj-peg.peg-in-peg/sequence-match)])
       (fn [b]
 	(let [alts (b '-match-)]
 	  [(make-alt-matcher
@@ -71,8 +72,11 @@
 
 (def rule-element
      (make-alt-matcher
-      (doall (map #(make-rule-matcher  %)
-		  '(clj-peg.peg-in-peg/binding-match clj-peg.peg-in-peg/optional clj-peg.peg-in-peg/zero-or-more clj-peg.peg-in-peg/one-or-more clj-peg.peg-in-peg/rule-element-atomic)))))
+      [(make-rule-matcher 'clj-peg.peg-in-peg/binding-match)
+       (make-rule-matcher 'clj-peg.peg-in-peg/optional)
+       (make-rule-matcher 'clj-peg.peg-in-peg/zero-or-more)
+       (make-rule-matcher 'clj-peg.peg-in-peg/one-or-more)
+       (make-rule-matcher 'clj-peg.peg-in-peg/rule-element-atomic)]))
 
 (def binding-match
      (make-return
@@ -123,95 +127,59 @@
 
 (def rule-element-atomic
      (make-alt-matcher
-      (doall (map #(make-rule-matcher  %)
-		  '(clj-peg.peg-in-peg/predicate
-		    clj-peg.peg-in-peg/parenthesis
-		    clj-peg.peg-in-peg/rule-match
-		    clj-peg.peg-in-peg/string-match
-		    clj-peg.peg-in-peg/atom-match
-		    clj-peg.peg-in-peg/not-rule)))))
+      [(make-rule-matcher 'clj-peg.peg-in-peg/predicate)
+       (make-rule-matcher 'clj-peg.peg-in-peg/parenthesis)
+       (make-rule-matcher 'clj-peg.peg-in-peg/rule-match)
+       (make-rule-matcher 'clj-peg.peg-in-peg/string-matcher)
+       (make-rule-matcher 'clj-peg.peg-in-peg/atom-match)
+       (make-rule-matcher 'clj-peg.peg-in-peg/not-rule)]))
 
 (def atom-match
      (make-return
-      (make-sequence-matcher
-       [(make-bind (make-rule-matcher  'clj-peg.derived-rules/anything) 'a)
-	(make-pred-matcher
-	 (fn [b]
-	   (let [a (first (b 'a))]
-	     (or
-	      (number? a)
-	      (char? a)))))])
+      (make-alt-matcher
+       [(make-rule-matcher 'clj-peg.derived-rules/match-number)
+	(make-rule-matcher 'clj-peg.derived-rules/match-char)])
       (fn [b]
 	(let [a (first (b 'a))]
 	  [(make-literal-matcher a)]))))
 
 (def predicate
      (make-return
-      (make-rule-matcher 'clj-peg.peg-in-peg/list-match)
+      (make-rule-matcher 'clj-peg.derived-rules/match-list)
       (fn [b]
 	(let [p (first (b '-match-))]
 	  [(make-pred-matcher (build-let-fn p))]))))
 
 (def parenthesis
      (make-return
-      (make-rule-matcher  'clj-peg.peg-in-peg/vec-match)
+      (make-rule-matcher 'clj-peg.derived-rules/match-vec)
       (fn [b]
 	(let [v (first (b '-match-))
 	      r (alternatives v b)]
 	  (:r r)))))
 
-(def vec-match
-     (make-sequence-matcher
-      [(make-bind (make-rule-matcher 'clj-peg.derived-rules/anything) 'v)
-       (make-pred-matcher
-	(fn [b]
-	  (let [v (first (b 'v))]
-	    (vector? v))))]))
-
-(def list-match
-     (make-sequence-matcher
-      [(make-bind (make-rule-matcher 'clj-peg.derived-rules/anything) 'l)
-       (make-pred-matcher
-	(fn [b]
-	  (let [l (first (b 'l))]
-	    (list? l))))]))
-
 (def rule-match
      (make-return
       (make-sequence-matcher
-       [(make-not (make-rule-matcher 'clj-peg.peg-in-peg/keyword-match))
-	(make-rule-matcher 'clj-peg.peg-in-peg/symbol-match)])
+       [(make-not (make-rule-matcher 'clj-peg.peg-in-peg/peg-keyword))
+	(make-rule-matcher 'clj-peg.derived-rules/match-symbol)])
       (fn [b]
 	(let [s (first (b '-match-))]
 	  [(make-rule-matcher  s)]))))
 
-(def string-match
+(def string-matcher
      (make-return
-      (make-rule-matcher 'clj-peg.peg-in-peg/string)
+      (make-rule-matcher 'clj-peg.derived-rules/match-string)
       (fn [b]
 	(let [s (first (b '-match-))]
 	  [(make-string-matcher s)]))))
 
-(def symbol-match
-     (make-sequence-matcher
-      [(make-bind (make-rule-matcher 'clj-peg.derived-rules/anything) 's)
-       (make-pred-matcher (fn [b]
-			    (let [s (first (b 's))]
-			      (symbol? s))))]))
-
-(def string
-     (make-sequence-matcher
-      [(make-bind (make-rule-matcher 'clj-peg.derived-rules/anything) 's)
-       (make-pred-matcher (fn [b]
-			    (let [s (first (b 's))]
-			      (string? s))))]))
-
 (def variable
      (make-sequence-matcher
-      [(make-not (make-rule-matcher 'clj-peg.peg-in-peg/keyword-match))
-       (make-rule-matcher 'clj-peg.peg-in-peg/symbol-match)]))
+      [(make-not (make-rule-matcher 'clj-peg.peg-in-peg/peg-keyword))
+       (make-rule-matcher 'clj-peg.derived-rules/match-symbol)]))
 
-(def keyword-match
+(def peg-keyword
      (make-alt-matcher
       [(make-rule-matcher 'clj-peg.peg-in-peg/literal=)
        (make-rule-matcher 'clj-peg.peg-in-peg/literal->)
