@@ -17,7 +17,7 @@
      (make-return 
       (make-sequence-matcher
        [(make-bind (make-rule-matcher 'clj-peg.peg-in-peg/rule-name) 'rule-name)
-	(make-rule-matcher 'clj-peg.derived-rules/literal=)
+	(make-rule-matcher 'clj-peg.peg-in-peg/literal=)
 	(make-bind (make-rule-matcher 'clj-peg.peg-in-peg/alternatives) 'rule-body)
 	(make-rule-matcher 'clj-peg.derived-rules/end)])
       (fn [b]
@@ -26,8 +26,8 @@
 
 (def rule-name
      (make-sequence-matcher
-      [(make-not (make-rule-matcher 'clj-peg.peg-in-peg/keyword-match))
-       (make-rule-matcher 'clj-peg.peg-in-peg/symbol-match)]))
+      [(make-not (make-rule-matcher 'clj-peg.peg-in-peg/peg-keyword))
+       (make-rule-matcher 'clj-peg.derived-rules/match-symbol)]))
 
 (def sequence-match
      (make-return
@@ -205,4 +205,5 @@
   (let [r  (rule-def d {})]
     (if (nil? r)
       (throw (RuntimeException. "not a valid grammar"))
-      `(def ~(:rule-name r) ~(:rule-body r)))))
+      (let [rule (first (:r r))]
+       `(def ~(:rule-name rule) ~(:rule-body rule))))))
