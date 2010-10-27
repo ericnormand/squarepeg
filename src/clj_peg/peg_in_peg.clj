@@ -3,8 +3,6 @@
   (:use clj-peg.grammar)
   (:use clj-peg.derived-rules))
 
-(def keyword-list '(= -> ? * + => -- /))
-
 ;; I don't really like this because it uses eval, but I don't know how to
 ;; dynamically let something any other way
 (defn build-let-fn [p]
@@ -13,27 +11,28 @@
      `(let [~@(apply concat b)]
 	~p))))
 
-(def rule-def
-     (make-return 
-      (make-sequence-matcher
-       [(make-bind (make-rule-matcher 'clj-peg.peg-in-peg/rule-name) 'rule-name)
-	(make-rule-matcher 'clj-peg.peg-in-peg/literal=)
-	(make-bind (make-rule-matcher 'clj-peg.peg-in-peg/alternatives) 'rule-body)
-	(make-rule-matcher 'clj-peg.derived-rules/end)])
-      (fn [b]
-	[{:rule-name (first (b 'rule-name))
-	  :rule-body (first (b 'rule-body))}])))
+(defrule rule-def
+  (mkret
+   (mkseq
+    [(mkbind (mkrule 'rule-name) 'rule-name)
+     (mklit '=)
+     (mkbind (mkrule 'alternatives) 'rule-body)
+     (mkrule 'end)])
+   (fn [b]
+     [{:rule-name (first (b 'rule-name))
+       :rule-body (first (b 'rule-body))}])))
 
-(def rule-name
-     (make-sequence-matcher
-      [(make-not (make-rule-matcher 'clj-peg.peg-in-peg/peg-keyword))
-       (make-rule-matcher 'clj-peg.derived-rules/match-symbol)]))
+; a symbol but not a keyword
+(defrule rule-name
+  (mkseq
+   [(mknot (mkrule 'peg-keyword))
+    (mkrule 'match-symbol)]))
 
-(def sequence-match
-     (make-return
-      (make-sequence-matcher
-       [(make-bind
-	 (make-one-or-more-matcher (make-rule-matcher 'clj-peg.peg-in-peg/rule-element))
+(defrule sequence-match
+     (mkret
+      (mkseq
+       [(mkseq
+	 (mk1om (mkrule 'rule-element))
 	 'rules)
 	(make-opt-matcher
 	 (make-sequence-matcher

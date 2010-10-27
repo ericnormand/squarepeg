@@ -2,45 +2,52 @@
   (:use clj-peg.peg)
   (:use clj-peg.grammar))
 
+(defrule always (mkpred (constantly true)))
+(defrule never  (mkpred (constantly false)))
+
 ; optional matcher
-(defn make-opt-matcher [rule]
-  (make-alt-matcher [rule (make-pred-matcher (constantly true))]))
+(defn mkopt [rule]
+  (mkalt [rule (mkrule 'always)]))
 
 ; one or more
-(defn make-one-or-more-matcher [rule]
-  (make-sequence-matcher [rule (make-zero-or-more-matcher rule)]))
+(defn mk1om [rule]
+  (mkseq [rule (mkzom rule)]))
 
 ; anything matches any single element and fails on end of input
-(def anything
+(defrule anything
   (fn [input bindings]
-    (when (seq input)
-      {:i (rest input) :b bindings :r [(first input)]})))
+    (if (seq input)
+      (succeed [(first input)] (rest input) bindings)
+      (fail "end of input"))))
 
 ; literal matcher
-(defn make-literal-matcher [l]
-  (make-sequence-matcher
-   [(make-bind (make-rule-matcher 'clj-peg.derived-rules/anything) '-match-)
-    (make-pred-matcher (fn [b] (let [i (first (b '-match-))] (= i l))))]))
+(defn mklit [l]
+  (mkseq
+   [(mkbind (mkrule 'anything) '-match-)
+    (mkpred (fn [b]
+	      (let [i (first (b '-match-))]
+		(= i l))))]))
 
 ; whitespace
-(def whitespace
-  (make-alt-matcher
-   (doall (map make-literal-matcher [\newline \space \tab]))))
+(defrule whitespace
+  (mkalt
+   (doall (map mklit [\newline \space \tab]))))
 
 ; string matcher
-(defn make-string-matcher [s]
-  (make-sequence-matcher (doall (map make-literal-matcher s))))
+(defn mkstr [s]
+  (mkseq (doall (map mklit s))))
 
-(def end
-  (make-not (make-rule-matcher 'clj-peg.derived-rules/anything)))
+(defrule end
+  (mknot (mkrule 'anything)))
 
 (defmacro defpredrule [name f]
   `(def ~name
-	(make-sequence-matcher
-	 [(make-bind (make-rule-matcher 'clj-peg.derived-rules/anything) '-match-)
-	  (make-pred-matcher  
-	   (fn [b#] (let [x# (first (b# '-match-))]
-		      (~f x#))))])))
+	(mkseq
+	 [(mkbind (mkrule 'anything) '-match-)
+	  (mkpred
+	   (fn [b#]
+	     (let [x# (first (b# '-match-))]
+	       (~f x#))))])))
 
 (defpredrule match-string string?)
 (defpredrule match-number number?)
