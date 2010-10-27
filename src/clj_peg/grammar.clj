@@ -5,12 +5,14 @@
 ;; but we don't want to give it any bindings or let it alter the bindings
 ;; we want this to lookup the rule at run-time, not before
 (defn mkrule [rule]
-  (mkfn
-   (fn [input bindings]
-     (let [r (rule input {})]
-       (if (success? r)
-	 (succeed (:r r) (:i r) bindings)
-	 r)))))
+  (fn [input bindings]
+    (let [r (rule input {})]
+      (if (success? r)
+	(succeed (:r r) (:i r) bindings)
+	r))))
+
+
+
 
 (defmacro defrule [name rule]
   `(def

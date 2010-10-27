@@ -72,6 +72,8 @@
 (defn ? [p v]
   (mkpr #(-> % v first p)))
 
+(defn =- [rule] (mksub (psr rule)))
+
 (defn => [f & vars]
   #($> (apply f (map $< (map % vars)))))
 
@@ -106,5 +108,5 @@
   'hello)
 
 (def handle-request (parser
-		     [[{[(mklit "/") :get] (=> g)}
+		     [[[(=- "/") :get]
 		       ]]))

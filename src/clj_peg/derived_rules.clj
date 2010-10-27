@@ -40,6 +40,14 @@
 (defrule end
   (mknot (mkrule 'anything)))
 
+(defn mksub [rule]
+  (fn [input bindings]
+    (if (seq input)
+     (let [r (rule (first input) bindings)]
+       (if (success? r)
+	 (succeed [(:r r)] (rest input) (:b r))
+	 r)))))
+
 (defn mkpr [f]
   (mkseq
    [(mkbind anything :-match-)
