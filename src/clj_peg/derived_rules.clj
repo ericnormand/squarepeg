@@ -23,9 +23,9 @@
 ; literal matcher
 (defn mklit [l]
   (mkseq
-   [(mkbind (mkrule 'anything) '-match-)
+   [(mkbind anything :-match-)
     (mkpred (fn [b]
-	      (let [i (first (b '-match-))]
+	      (let [i (first (b :-match-))]
 		(= i l))))]))
 
 ; whitespace
@@ -40,22 +40,20 @@
 (defrule end
   (mknot (mkrule 'anything)))
 
-(defmacro defpredrule [name f]
-  `(def ~name
-	(mkseq
-	 [(mkbind (mkrule 'anything) '-match-)
-	  (mkpred
-	   (fn [b#]
-	     (let [x# (first (b# '-match-))]
-	       (~f x#))))])))
+(defn mkpr [f]
+  (mkseq
+   [(mkbind anything :-match-)
+    (mkpred
+     (fn [b]
+       (-> b :-match- first f)))]))
 
-(defpredrule match-string string?)
-(defpredrule match-number number?)
-(defpredrule match-integer integer?)
-(defpredrule match-float float?)
-(defpredrule match-symbol symbol?)
-(defpredrule match-keyword keyword?)
-(defpredrule match-char char?)
-(defpredrule match-vec vector?)
-(defpredrule match-list list?)
-(defpredrule match-hash map?)
+(def match-string (mkpr string?))
+(def match-number (mkpr number?))
+(def match-integer (mkpr integer?))
+(def match-float (mkpr float?))
+(def match-symbol (mkpr symbol?))
+(def match-keyword (mkpr keyword?))
+(def match-char (mkpr char?))
+(def match-vec (mkpr vector?))
+(def match-list (mkpr list?))
+(def match-hash (mkpr map?))
