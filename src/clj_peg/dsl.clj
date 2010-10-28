@@ -70,7 +70,7 @@
     [x]))
 
 (defn ? [p v]
-  (mkpr #(-> % v first p)))
+  (mkpred #(-> % v first p)))
 
 (defn =- [rule] (mksub (psr rule)))
 
