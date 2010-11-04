@@ -2,13 +2,32 @@
   (:use clj-peg.dsl)
   (:use clj-peg.peg))
 
-(def peval (parser
-	    [[
-	      #{number?}
-	      {#{symbol?} (=> resolve :match)}
-	      {(=- [{anything :fn} {#{anything :*} :args}])
-	       (=> #(apply (peval [%1]) (map peval [%2])) :fn :args)}
-	      ]]))
+(defn now []
+  (System/currentTimeMillis))
+
+(def time-unit (parser [[{:days    (* 1000 60 60 24)}
+			 {:day     (* 1000 60 60 24)}
+			 {:hour    (* 1000 60 60)}
+			 {:hours   (* 1000 60 60)}
+			 {:minute  (* 1000 60)}
+			 {:minutes (* 1000 60)}
+			 {:second  1000}
+			 {:seconds 1000}]]))
+
+(def time-interval (parser {[{#{number?} :n} {time-unit :u}] (=> * :n :u)}))
+
+(def absolute-time (parser [[{:now         (=> now)}
+			     {:today       (=> now)}
+			     {:yesterday   (=> #(- (now) (* 1000 60 60 24)))}
+			     {:tomorrow    (=> #(+ (now) (* 1000 60 60 24)))}
+			     ]]))
+
+(def relative-time (parser [[
+			     {[{time-interval :i} :ago] (=> #(- (now) %) :i)}
+			     {[{time-interval :i} :before {absolute-time :t}] (=> - :t :i)}
+			     {[{time-interval :i} [[:after :from]] {absolute-time :t}] (=> + :t :i)}
+			     ]]))
+
 
 (declare calc)
 (declare sum)
