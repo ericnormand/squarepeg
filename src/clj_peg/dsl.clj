@@ -57,6 +57,9 @@
   Number
   (psr [f]
        (mklit f))
+  clojure.lang.Var
+  (psr [f]
+       (mkrule f))
   Character
   (psr [c]
 	  (mklit c)))

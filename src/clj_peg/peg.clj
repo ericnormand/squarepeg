@@ -55,7 +55,7 @@
   (fn [input bindings]
     (let [r (rule input bindings)]
       (if (success? r)
-	(let [b (assoc (:b r) :-match- (:r r))
+	(let [b (assoc (:b r) :match (:r r))
 	      v (ret b)]
 	  (succeed v [v] (:i r) b))
        r))))

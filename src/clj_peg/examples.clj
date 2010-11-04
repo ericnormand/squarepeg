@@ -1,7 +1,33 @@
 (ns clj-peg.examples
-  (:use clj-peg.dsl))
+  (:use clj-peg.dsl)
+  (:use clj-peg.peg))
 
+(def peval (parser
+	    [[
+	      #{number?}
+	      {#{symbol?} (=> resolve :match)}
+	      {(=- [{anything :fn} {#{anything :*} :args}])
+	       (=> #(apply (peval [%1]) (map peval [%2])) :fn :args)}
+	      ]]))
 
+(declare calc)
+(declare sum)
+(declare product)
+
+(def term (parser [[#{number?}
+		    {#{vector?} (=> #'calc :match)}]]))
+
+(def product (parser [[
+		       {[{#'term :a} :* {#'sum :b}] (=> * :a :b)}
+		       #'term
+		       ]]))
+
+(def sum (parser [[
+		   {[{#'product :a} :+ {#'sum :b}] (=> + :a :b)}
+		   #'product
+		   ]]))
+
+(def calc (parser {[sum end] (=> first :match)}))
 
 (comment
 
