@@ -7,14 +7,8 @@
 (extend-protocol ParserNotation
   clojure.lang.IPersistentVector
   (psr [x]
-	  ;; a vector is either a sequence or an alternative
-	  (cond
-	   ;; alternative
-	   (and (= 1 (count x)) (vector? (first x)))
-	   (mkalt (map psr (first x)))
-
-	   :otherwise ;; just a sequence
-	   (mkseq (map psr x))))
+       ;; a vector is a sequence
+       (mkseq (map psr x)))
   clojure.lang.IPersistentMap
   (psr [m]
 	  ;; a map is a binding or a return
@@ -64,6 +58,11 @@
   (psr [c]
 	  (mklit c)))
 
+(defrecord Alternatives [rules]
+  ParserNotation
+  (psr [a]
+       (mkalt (map psr rules))))
+
 (defn ? [p v]
   (mkpred #(-> % v p)))
 
@@ -71,6 +70,8 @@
 
 (defn => [f & vars]
   #(apply f (map % vars)))
+
+(defn OR [& rules] (Alternatives. (vec rules)))
 
 (defn parser [x]
   (-> x psr mkfn))

@@ -5,44 +5,45 @@
 (defn now []
   (System/currentTimeMillis))
 
-(def time-unit [[{:days    (* 1000 60 60 24)}
-		 {:day     (* 1000 60 60 24)}
-		 {:hour    (* 1000 60 60)}
-		 {:hours   (* 1000 60 60)}
-		 {:minute  (* 1000 60)}
-		 {:minutes (* 1000 60)}
-		 {:second  1000}
-		 {:seconds 1000}]])
+(def time-unit (OR {:days                         (* 1000 60 60 24)}
+		   {:day                          (* 1000 60 60 24)}
+		   {:hour                         (* 1000 60 60)}
+		   {:hours                        (* 1000 60 60)}
+		   {:minute                       (* 1000 60)}
+		   {:minutes                      (* 1000 60)}
+		   {:second                       1000}
+		   {:seconds                      1000}))
 
-(def time-interval {[{#{number?} :n} {time-unit :u}] (=> * :n :u)})
+(def time-interval {[{#{number?} :n} {time-unit :u}]                   (=> * :n :u)})
 
-(def absolute-time [[{:now         (=> now)}
-		     {:today       (=> now)}
-		     {:yesterday   (=> #(- (now) (* 1000 60 60 24)))}
-		     {:tomorrow    (=> #(+ (now) (* 1000 60 60 24)))}
-		     ]])
+(def absolute-time (OR {:now                                    (=> now)}
+		       {:today                                  (=> now)}
+		       {:yesterday                              (=> #(- (now) (* 1000 60 60 24)))}
+		       {:tomorrow                               (=> #(+ (now) (* 1000 60 60 24)))}
+		       ))
 
-(def relative-time (parser [[
-			     {[{time-interval :i} :ago] (=> #(- (now) %) :i)}
-			     {[{time-interval :i} :before {absolute-time :t}] (=> - :t :i)}
-			     {[{time-interval :i} [[:after :from]] {absolute-time :t}] (=> + :t :i)}
-			     ]]))
+(def relative-time (parser (OR 
+			    {[{time-interval :i} :ago]                         (=> #(- (now) %) :i)}
+			    {[{time-interval :i} :before {absolute-time :t}]   (=> - :t :i)}
+			    {[{time-interval :i} [[:after :from]] {absolute-time :t}] (=> + :t :i)}
+			    )))
 
 
 (declare calc)
 (declare sum)
 (declare product)
 
-(def term (parser [[#{number?}
-		    {#{vector?} (=> #'calc :match)}]]))
+(def term (parser (OR
+		   #{number?}
+		   {#{vector?}                            (=> #'calc :match)})))
 
 (def product (parser [[
-		       {[{#'term :a} :* {#'sum :b}] (=> * :a :b)}
+		       {[{#'term :a} :* {#'sum :b}]       (=> * :a :b)}
 		       #'term
 		       ]]))
 
 (def sum (parser [[
-		   {[{#'product :a} :+ {#'sum :b}] (=> + :a :b)}
+		   {[{#'product :a} :+ {#'sum :b}]        (=> + :a :b)}
 		   #'product
 		   ]]))
 
