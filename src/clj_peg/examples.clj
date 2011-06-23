@@ -2,82 +2,70 @@
   (:use clj-peg.dsl)
   (:use clj-peg.peg))
 
-(defn now []
-  (System/currentTimeMillis))
+;; a number parser
 
-(def time-unit (OR {:days                         (* 1000 60 60 24)}
-		   {:day                          (* 1000 60 60 24)}
-		   {:hour                         (* 1000 60 60)}
-		   {:hours                        (* 1000 60 60)}
-		   {:minute                       (* 1000 60)}
-		   {:minutes                      (* 1000 60)}
-		   {:second                       1000}
-		   {:seconds                      1000}))
+(def digits (range 10))
 
-(def time-interval {[{#{number?} :n} {time-unit :u}]                   (=> * :n :u)})
+(def simple-number-names
+  [
+   ["eleven"      , 11],
+   ["twelve"      , 12],
+   ["thirteen"    , 13],
+   ["fourteen"    , 14],
+   ["fifteen"     , 15],
+   ["sixteen"     , 16],
+   ["seventeen"   , 17],
+   ["eighteen"    , 18],
+   ["nineteen"    , 19],
+   ["ninteen"     , 19], ;; Common mis-spelling
+   ["zero"        , 0],
+   ["one"         , 1],
+   ["two"         , 2],
+   ["three"       , 3],
+   ["four"        , 4],  ;; The weird regex is so that it matches four but not fourty
+   ["five"        , 5],
+   ["six"         , 6],
+   ["seven"       , 7],
+   ["eight"       , 8],
+   ["nine"        , 9],
+   ["ten"         , 10],
+;;   ["\\ba[\\b^$]" , "1"] ;; doesn"t make sense for an "a" at the end to be a 1
+   ]
+)
 
-(def absolute-time (OR {:now                                    (=> now)}
-		       {:today                                  (=> now)}
-		       {:yesterday                              (=> #(- (now) (* 1000 60 60 24)))}
-		       {:tomorrow                               (=> #(+ (now) (* 1000 60 60 24)))}
-		       ))
+(def ordinals
+  [
+   ["first"   , 1 "st"],
+   ["third"   , 3 "rd"],
+   ["fourth"  , 4 "th"],
+   ["fifth"   , 5 "th"],
+   ["sixth"   , 6 "th"],
+   ["seventh" , 7 "th"],
+   ["eighth"  , 8 "th"],
+   ["ninth"   , 9 "th"],
+   ["tenth"   , 10 "th"]
+   ])
 
-(def relative-time (parser (OR 
-			    {[{time-interval :i} :ago]                         (=> #(- (now) %) :i)}
-			    {[{time-interval :i} :before {absolute-time :t}]   (=> - :t :i)}
-			    {[{time-interval :i} [[:after :from]] {absolute-time :t}] (=> + :t :i)}
-			    )))
+(def ten-prefixes
+  [
+   ["twenty"  , 20],
+   ["thirty"  , 30],
+   ["forty"   , 40],
+   ["fourty"  , 40], ;; Common mis-spelling
+   ["fifty"   , 50],
+   ["sixty"   , 60],
+   ["seventy" , 70],
+   ["eighty"  , 80],
+   ["ninety"  , 90]
+   ])
 
+(def powers-of-ten
+  [
+   ["hundred"  , 100],
+   ["thousand" , 1000],
+   ["million"  , 1000000],
+   ["billion"  , 1000000000],
+   ["trillion" , 1000000000000],
+   ])
 
-(declare calc)
-(declare sum)
-(declare product)
-
-(def term (parser (OR
-		   #{number?}
-		   {#{vector?}                            (=> #'calc :match)})))
-
-(def product (parser [[
-		       {[{#'term :a} :* {#'sum :b}]       (=> * :a :b)}
-		       #'term
-		       ]]))
-
-(def sum (parser [[
-		   {[{#'product :a} :+ {#'sum :b}]        (=> + :a :b)}
-		   #'product
-		   ]]))
-
-(def calc (parser {[sum end] (=> first :match)}))
-
-(comment
-
-  (def day-word (parser [[{:today 100}
-			  {:yesterday 0}
-			  {:tomorrow 200}]]))
-
-  (def amount-exp {[{match-number :x} :days] (=> #(* % 1000 60 60 24) :x)})
-
-  (def rel-exp {[{amount-exp :x} :before] (=> #(fn [x] (- x %)) :x)})
-
-  (def date-expr (parser {[{rel-exp :op} {day-word :time}]
-			  (=> #(%1 %2) :op :time)}))
-
-  (def path-sep "/")
-  (def path-root "/")
-
-  (def path-seg [[".."
-		  [{anything :a} (? #(not (= \/ %)) :a)]]])
-
-  (def path-match [[[path-root path-match] 
-		    [path-seg #{[path-sep path-seg] :*}]
-		    {path-root "root"}
-		    ]])
-
-  (def infinite-as (parser {#{"a" :*} (=> count :-match-)}))
-
-  (defn g []
-    'hello)
-
-  (def handle-request (parser
-		       [[[(=- "/") :get]
-			 ]])))
+(def match-digit (apply OR (map str digits)))
