@@ -1,6 +1,6 @@
 (ns clj-peg.examples
   (:use clj-peg.dsl)
-  (:use clj-peg.peg))
+  (:use clj-peg.combinators))
 
 ;; a number parser
 

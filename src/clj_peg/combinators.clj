@@ -60,9 +60,31 @@
           (succeed v [v] (:i r) b))
         r))))
 
+(defn mknothing [rule]
+  (fn [input bindings]
+    (let [r (rule input bindings)]
+      (if (success? r)
+        (succeed nil [] (:i r) (:b r))
+        r))))
+
 ;; helper function to concatenate vecs
 (defn vec-cat [a b]
   (reduce conj a b))
+
+(defn noreturn? [r]
+  (and (nil? (:r r)) (nil? (seq (:s r)))))
+
+(defn catreturns [r1 r2]
+  (cond
+   (noreturn? r1)
+   [(:r r2) (:s r2)]
+
+   (noreturn? r2)
+   [(:r r1) (:s r1)]
+
+   :otherwise
+   (let [val (vec-cat (:s r1) (:s r2))]
+     [val val])))
 
 (defn mkcat [rule1 rule2]
   (fn [input bindings]
@@ -72,8 +94,8 @@
         (let [r2 (rule2 (:i r1) (:b r1))]
           (if (failure? r2)
             r2
-            (let [val (vec-cat (:s r1) (:s r2))]
-              (succeed val val (:i r2) (:b r2)))))))))
+            (let [[r s] (catreturns r1 r2)]
+              (succeed r s (:i r2) (:b r2)))))))))
 
 ;; A sequence matcher matches all rules in order against the input and returns a vec of the outputs
 (defn mkseq [rules]

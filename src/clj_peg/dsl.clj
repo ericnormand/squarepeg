@@ -1,5 +1,5 @@
 (ns clj-peg.dsl
-  (:use clj-peg.ast))
+  (:use clj-peg.combinators))
 
 (defprotocol ParserNotation
   (psr [x]))
