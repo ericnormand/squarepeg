@@ -126,7 +126,7 @@
 (defn mkpred [f]
   (fn [input bindings]
     (if (f bindings)
-      (succeed true [] input bindings)
+      (succeed nil [] input bindings)
       (fail "Failed to match predicate"))))
 
 ;; zero or more matcher matches a rule as many times as possible
