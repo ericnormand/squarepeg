@@ -138,31 +138,12 @@
           (recur (vec-cat val (:s r)) (:i r) (:b r))
           (succeed val val input bindings))))))
 
-(def always (mkpred (constantly true)))
-(def never  (mkpred (constantly false)))
-
-(def anything (mkpr (constantly true)))
-
-;; optional matcher
-(defn mkopt [rule]
-  (mkalt [rule always]))
-
-;; one or more
-(defn mk1om [rule]
-  (mkseq [rule (mkzom rule)]))
-
-;; literal matcher
-(defn mklit [l]
-  (mkpr #(= l %)))
-
-;; whitespace
-(def whitespace (mkpr #{\newline \space \tab}))
-
-;; string matcher
-(defn mkstr [s]
-  (mkseq (doall (map mklit s))))
-
-(def end (mknot anything))
+(defn mkscope [rule]
+  (fn [input bindings]
+    (let [r (rule input {})]
+      (if (success? r)
+        (succeed (:r r) (:s r) (:i r) bindings)
+        r))))
 
 (defn mksub [rule]
   (fn [input bindings]
@@ -172,20 +153,49 @@
           (succeed (:s r) [(:s r)] (rest input) (:b r))
           r)))))
 
-(def match-string (mkpr string?))
-(def match-number (mkpr number?))
-(def match-integer (mkpr integer?))
-(def match-float (mkpr float?))
-(def match-symbol (mkpr symbol?))
-(def match-keyword (mkpr keyword?))
-(def match-char (mkpr char?))
-(def match-vec (mkpr vector?))
-(def match-list (mkpr list?))
-(def match-hash (mkpr map?))
+;; one or more
+(defn mk1om [rule]
+  (mkseq [rule (mkzom rule)]))
 
-(defn mkrule [rule]
+;; optional matcher
+(defn mkopt [rule]
   (fn [input bindings]
-    (let [r (rule input {})]
-      (if (success? r)
-        (succeed (:r r) (:s r) (:i r) bindings)
+    (let [r (rule input bindings)]
+      (if (failure? r)
+        (succeed nil [] input bindings)
         r))))
+
+;; literal matcher
+(defn mklit [l]
+  (mkpr #(= l %)))
+
+;; string matcher
+;; test whether we need the doall
+(defn mkstr [s]
+  (mkseq (doall (map mklit s))))
+
+;; utilities: move these to their own file
+
+(def always (mkpred (constantly true)))
+(def never  (mkpred (constantly false)))
+(def anything (mkpr (constantly true)))
+
+;; whitespace
+(def whitespace (mkpr #(Character/isSpace %)))
+
+(def digit (mkpr #(Character/isDigit %)))
+
+(def end (mknot anything))
+
+(def match-char    (mkpr char?    ))
+(def match-float   (mkpr float?   ))
+(def match-hash    (mkpr map?     ))
+(def match-integer (mkpr integer? ))
+(def match-keyword (mkpr keyword? ))
+(def match-list    (mkpr list?    ))
+(def match-number  (mkpr number?  ))
+(def match-string  (mkpr string?  ))
+(def match-symbol  (mkpr symbol?  ))
+(def match-vector  (mkpr vector?  ))
+
+
