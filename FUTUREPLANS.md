@@ -1,34 +1,5 @@
 ## Future History (planning)
 
-### 0.2.0
-
-This release will add memoizing and add support for immutable data
-passed in to a rule as context that is not suitable for the mutable
-bindings argument.
-
-Memoizing trades space efficiency for computational
-efficiency. Typically, PEG parsers use memoizing to provide infinite
-lookahead in O(n) time. Currently, clj-peg does not memoize the
-results of rules. For long inputs, it could perform very poorly
-time-wise. Memoizing should fix that.
-
-The third issue, which is somewhat related, is the idea of passing in
-an immutable context to a rule when it is called. Bindings are not
-suitable for this purpose since they are mutable. A context will allow
-the preservation of types. For instance, currently when you pass a
-String as an input to a parser, it converts it to a seq of
-characters. You have to convert it back manually. Passing in the type
-as part of the context will eliminate this awkwardness.
-
-Scoping (with <code>mkscope</code>) and context make the rules
-generated with the combinators safe to share with others. I expect
-memoizing will make it more efficient.
-
-The argument signature of rules will have to change. This will be the
-last breaking change before 1.0.0. Any existing combinators will have
-to be reworked. This is why I want to do all of these changes at once;
-it will finalize the calling signature of a rule.
-
 ### 0.3.0
 
 I will add a combinator that should increase the usefulness of the
