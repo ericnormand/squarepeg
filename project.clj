@@ -1,4 +1,4 @@
-(defproject clj-peg "0.1.0"
+(defproject clj-peg "0.2.0"
   :description "clj-peg is a PEG parser written in Clojure.  It can parse any sequence of data types, including lists and vectors."
   
   :dependencies     [[org.clojure/clojure  "[1.2.0,)"]]
