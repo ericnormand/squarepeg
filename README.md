@@ -201,6 +201,14 @@ Example:
     ;; match zero or more whitespace
     (def w* (mkzom (mkpr #(Character/isSpace %))))
 
+<code>always</code> a utility rule (not a combinator) which always
+matches.
+
+<code>never</code> a utility rule (not a combinator) which never
+matches.
+
+
+
 ###Utility
 
 <code>mkfn</code> creates a function that is a little bit more
