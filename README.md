@@ -5,8 +5,7 @@
 clj-peg is a library for defining PEGs. PEG stands for Parsing
 Expression Grammar.
 
-The library defines a set of parser combinators and a dsl for creating
-rules.
+The library defines a set of parser combinator creating rules.
 
 Parsers created with clj-peg are data-structure agnostic. They can
 operate on any seq and on any data type in the seq. The parsers can be
@@ -20,12 +19,16 @@ deleted. You can find it in the git history, if you wish to revert.
 
 http://github.com/ericnormand/clj-peg
 
+You may want to jump right in to the examples in
+src/clj_peg/examples.clj
+
 ##How it works
 
 clj-peg is defined in terms of combinators. Each combinator is a
-function which generates an atomic unit of a parser. By combining
-these parts (with combinators! ;-), you can generate complex parsers
-that can handle a superset of Context Free Grammars.
+function which generates an atomic unit of a parser (called a
+_rule_). By combining these parts (with combinators! ;-), you can
+generate complex parsers that can handle a superset of Context Free
+Grammars.
 
 First, we'll go over some basic concepts.
 
@@ -81,8 +84,9 @@ have the parser consider it to be a single value, you would set :r to
 :s is primarily used by the mkseq combinator to collect return values
 of its subrules.
 
-*NOTE*: This may or may not go away in a future version. I have not
- found it useful to keep a seq of the return values.
+*NOTE*: This may or may not change in a future version. The current
+ functionality is somewhat confusing and does not always yield
+ expected results.
 
 ###Failure
 
@@ -111,6 +115,9 @@ a rule that says "and is not followed by . . .".
 Example:
 
     (def not-followed-by-whitespace (mknot whitespace))
+    (not-followed-by-whitespace "abc" {}) 
+        => {:r nil :s [] :i (\a \b \c) :b {})
+    (not-followed-by-whitespace " abc" {}) => {:fail "NOT failed"}
 
 <code>mkbind</code> creates a rule that will bind the return value of
 its first argument (a rule) to its second argument (typically a
@@ -119,7 +126,10 @@ keyword). Binding is useful if you want to refer to a rule later.
 Example:
 
     ;; bind the matched digits to :digits
-    (def digits (mkbind (mk1om (mkpr #(Character/isDigit %))) :digits))
+    (def digits (mkbind 
+        (mk1om (mkpr #(Character/isDigit %))) :digits))
+    (digits "123" {}) 
+        => {:r [\1 \2 \3] :s [\1 \2 \3] :i nil :b {:digits [\1 \2 \3]}}
 
 <code>mkpr</code> creates a rule that consumes one item from the
 input. It then calls the given predicate on it. If the predicate
@@ -201,13 +211,80 @@ Example:
     ;; match zero or more whitespace
     (def w* (mkzom (mkpr #(Character/isSpace %))))
 
+<code>mkscope</code> creates a scope protector around a rule so that
+bindings that the given rule creates do not leak into the current
+scope. This function should be used around your own rules.
+
+Example:
+
+    ;; a rule that binds but does not protect
+    (def as (mkbind (mk1om (mklit \a)) :as))
+    ;; a rule that calls as
+    (def xab (mkseq [(mkbind (mk1om (mklit \x)) :as) ;; bind to :as
+                     (mkscope as)                    ;; make sure as
+                                                     ;; does not bind
+                     (mk1om (mklit \b))]))
+
+<code>mksub</code> creates a rule that matches a nested seq within the
+seq.
+
+Example:
+
+    ;; match a seq of ones
+    (def ones (mk0om (mklit 1)))
+    ;; match a seq of ones followed by 2s
+    (def anesthetics (mkseq [(mksub ones) (mk0om (mklit 2))]))
+    (onesthentwos [[1 1 1] 2 2] {}) => SUCCESS
+    (onesthentwos [1 1 1 2 2] {}) => FAILURE
+
+<code>mk1om</code> creates a rule that matches the given rule at least
+once. Returns all matches.
+
+Example:
+
+    ;; match one or more digits
+    (def digits (mk1om digit))
+    (digits "1234" {}) => {:r [\1 \2 \3 \4] :s [\1 \2 \3\ 4] :i nil :b {}}
+    (digits "123 4" {}) => {:r [\1 \2 \3] :s [\1 \2 \3] :i (\4) :b {}}
+             
+<code>mkopt</code> creates a rule that always succeeds. If the rule it
+is given matches, it returns its value. Otherwise, it succeeds with no
+return.
+
+Example:
+    ;; optionally match 'xyz'
+    (def xyz? (mkopt (mkstr "xyz")))
+
+<code>mklit</code> creates a rule that matches a value if it is equal.
+
+Example:
+    ;; match the number 12
+    (def twelve (mklit 12))
+    (twelve [12] {}) => {:r 12 :s [12] :i nil :b {}}
+
+<code>mkstr</code> create a sequential rule that matches all of the
+characters of a string.
+
+Example:
+    ;; match the string "hello" followed by whitespace
+    (def hellow+ (mkseq [(mkstr "hello") (mk1om whitespace)]))
+
+###Predefined rules
+
+Here are the predefined rules that may come in handy.
+
 <code>always</code> a utility rule (not a combinator) which always
 matches.
 
 <code>never</code> a utility rule (not a combinator) which never
 matches.
 
+<code>anything</code> a utitily rule that consumes one item of input
+and returns it.
 
+<code>whitespace</code> matches a single character that is a space.
+
+<code>digit</code> matches a single character that is a digit.
 
 ###Utility
 
@@ -220,110 +297,8 @@ value if it succeeds.
 
 When called with input and bindings, it acts as a normal rule.
 
-## History
+##Other documents
 
-### Prior to 0.1.0
-No history was tracked. There was much confusion.
+See RELEASENOTES.md for a history of the project.
 
-### 0.1.0
-
-This version is mainly a documentation release. Documentation,
-examples, etc, were poor and I want it to be easier to use.
-
-Also, as noted before, I attempted to create an internal DSL that
-would use Clojure's data structures to easily create readable grammars
-by avoiding the combinators. This turned out to be difficult. Way over
-my head. I now don't think it's possible to provide all of the
-functionality of a useful PEG grammar in terms of vecs, hashes, and
-Strings. If you have ideas on this, let me know. Otherwise, see future
-planning for 0.3.0 for an idea.
-
-Some things that I hope to add in this release:
-
-* docstrings for all functions.
-* metadata to make the defined rules look more like regular defn'd functions
-* examples to learn from
-* making utility functions not exported
-
-## Future History (planning)
-
-### 0.2.0
-
-This release will add memoizing, fix an issue with bindings, and add
-support for immutable data passed in to a rule as context that is not
-suitable for the mutable bindings argument.
-
-Memoizing trades space efficiency for computational
-efficiency. Typically, PEG parsers use memoizing to provide infinite
-lookahead in O(n) time. Currently, clj-peg does not memoize the
-results of rules. For long inputs, it could perform very poorly
-time-wise. Memoizing should fix that.
-
-There is an issue with bindings in which a subrule can overwrite an
-existing binding. This behavior violates the existing mental model of
-a rule as an atomic unit that can be reused and composed freely. The
-current workaround is to always uniquely name your bindings. This is
-an unacceptable solution.
-
-The solution I propose is to create a <code>mkscope</code> combinator
-which will protect the bindings of the rule it is passed from
-modifying other rules. It should be used whenever a top-level rule is
-defined (for instance, a rule bound to a var) or whenever you would
-like to use a rule from code which you do not control and do not
-trust. For instance, if you would like to import a rule defined in
-another module, you could first wrap it in an <code>mkscope</code>,
-which would protect it from modifying your bindings.
-
-The third issue, which is somewhat related, is the idea of passing in
-an immutable context to a rule when it is called. Bindings are not
-suitable for this purpose since they are mutable.
-
-Scoping and context make the rules generated with the combinators safe
-to share with others. I expect memoizing will make it more efficient.
-
-The argument signature of rules will have to change. This will be the
-last breaking change before 1.0.0. Any existing combinators will have
-to be reworked. This is why I want to do all of these changes at once;
-it will finalize the calling signature of a rule.
-
-### 0.3.0
-
-In this release I will remove the idea of notion of a sequence return
-in favor of a single return value, :r. I have not found :s to be
-valuable.
-
-However, I will add a combinator that should increase the usefulness
-of the parser. It will bind the matched input seq to :match, which
-will then be available to subsequent rules.
-
-This will require the scoping combinator <code>mkscope</code> to work
-safely.
-
-### 0.4.0
-
-This release will create a test suite for the parser. Success and
-failure cases will test every possible exit point of the individual
-parser combinators. There is a small number of them and each is
-simple, so this should not be difficult.
-
-### 0.5.0
-
-This release will be the last foreseeable release before 1.0.0. It
-will mainly be work to make parsers simpler to define and share, as
-well as enabling use by other languages on the JVM.
-
-Although it is not entirely planned at the moment, here are some
-thoughts that may make it into the final release:
-
-* An external DSL to define rules. The rules would be made available
-  in the current namespace (via <code> (def . . .) </code>). The DSL
-  could be defined in a String or in an external file.
-* A macro for generating a parser class suitable for use by Java.
-* Macros to compile the parser at compile time instead of at runtime.
-* A parser-generator class suitable for use by Java.
-
-### A series of bugfixes, implementations of feature requests, and optimizations
-
-### 1.0.0
-
-The PEG parser in all its glory.
+See FUTUREPLANS.md to know where the project is headed.
