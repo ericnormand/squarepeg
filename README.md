@@ -34,21 +34,23 @@ First, we'll go over some basic concepts.
 
 ###Rules
 
-A rule is a function of two arguments, input and bindings.
+A rule is a function of four arguments, input, bindings, context and
+memo.
 
 input is a seq of inputs (a text string, a vector, a lazy list), and
 bindings is a map of current bindings.
 
+Context is a map of bindings that are not mutable. Think of it as a
+global scope for the duration of the parse.
+
+Memo is a map used for memoization.
+
 A rule should return (success . . .) or (fail msg) with a failure
 message.
 
-*NOTE*: In an upcoming future release, rules will probably take more
- arguments. <code>mkfn</code> should still work as advertised and is a
- convenient way for writing future-compatible code.
-
 ###Success
 
-Success is defined as a map of four values, :i, :b, :r, and :s
+Success is defined as a map of four values, :i, :b, :r, :s, and :m.
 
 :i is the rest of the input after the rule has consumed all it wants.
 
@@ -62,6 +64,10 @@ rule will assoc new bindings onto the bindings parameter.
 
 :s is the sequence-context return value, which means it's always a
 vec.
+
+:m is the memoization map. Parser rules that wish to memoize should
+assoc their results to this map. Please see <code>mkmemo</code> for an
+example.
 
 The function <code>success?</code> determines if an rule was
 successful.
@@ -90,14 +96,10 @@ of its subrules.
 
 ###Failure
 
-Failure is a map with a single value, :fail, which is mapped to the
-failure message.
+Failure is a map with two values, :fail and :m, which are mapped to
+the failure message and the memo object, respectively.
 
 Use <code>failure?</code> to determine if a rule failed.
-
-*NOTE*: The failure object will change in future versions. It will
- have more than just the failure message. <code>failure?</code> will most
- likely remain unchanged.
 
 ###Combinators
 
@@ -115,8 +117,8 @@ a rule that says "and is not followed by . . .".
 Example:
 
     (def not-followed-by-whitespace (mknot whitespace))
-    (not-followed-by-whitespace "abc" {}) 
-        => {:r nil :s [] :i (\a \b \c) :b {})
+    (not-followed-by-whitespace "abc" {} {} {}) 
+        => {:r nil :s [] :i (\a \b \c) :b {} :m {})
     (not-followed-by-whitespace " abc" {}) => {:fail "NOT failed"}
 
 <code>mkbind</code> creates a rule that will bind the return value of
@@ -128,8 +130,9 @@ Example:
     ;; bind the matched digits to :digits
     (def digits (mkbind 
         (mk1om (mkpr #(Character/isDigit %))) :digits))
-    (digits "123" {}) 
-        => {:r [\1 \2 \3] :s [\1 \2 \3] :i nil :b {:digits [\1 \2 \3]}}
+    (digits "123" {} {} {}) 
+        => {:r [\1 \2 \3] :s [\1 \2 \3] :i nil :b {:digits [\1 \2 \3]}
+            :m {}}
 
 <code>mkpr</code> creates a rule that consumes one item from the
 input. It then calls the given predicate on it. If the predicate
@@ -244,30 +247,40 @@ Example:
 
     ;; match one or more digits
     (def digits (mk1om digit))
-    (digits "1234" {}) => {:r [\1 \2 \3 \4] :s [\1 \2 \3\ 4] :i nil :b {}}
-    (digits "123 4" {}) => {:r [\1 \2 \3] :s [\1 \2 \3] :i (\4) :b {}}
+    (digits "1234" {} {} {}) 
+        => {:r [\1 \2 \3 \4] :s [\1 \2 \3\ 4] :i nil :b {} :m {}}
+    (digits "123 4" {} {} {}) 
+        => {:r [\1 \2 \3] :s [\1 \2 \3] :i (\4) :b {} :m {}}
              
 <code>mkopt</code> creates a rule that always succeeds. If the rule it
 is given matches, it returns its value. Otherwise, it succeeds with no
 return.
 
 Example:
+
     ;; optionally match 'xyz'
     (def xyz? (mkopt (mkstr "xyz")))
 
 <code>mklit</code> creates a rule that matches a value if it is equal.
 
 Example:
+
     ;; match the number 12
     (def twelve (mklit 12))
-    (twelve [12] {}) => {:r 12 :s [12] :i nil :b {}}
+    (twelve [12] {} {} {}) => {:r 12 :s [12] :i nil :b {} :m {}}
 
 <code>mkstr</code> create a sequential rule that matches all of the
 characters of a string.
 
 Example:
+
     ;; match the string "hello" followed by whitespace
     (def hellow+ (mkseq [(mkstr "hello") (mk1om whitespace)]))
+
+<code>mkmemo</code> creates a new rule which memoizes the given
+rule. The best way to use this is directly inside of a
+<code>mkscope</code> when defining a top-level rule for most efficient
+results.
 
 ###Predefined rules
 
@@ -295,7 +308,10 @@ When called with a seq of inputs, it calls the given rule with empty
 bindings and throws a RuntimeException if the parse fails and the :r
 value if it succeeds.
 
-When called with input and bindings, it acts as a normal rule.
+<code>mkfn</code> functions can also be called with input + context.
+
+When called with input, bindings, context, and memo, it acts as a
+normal rule.
 
 ##Other documents
 
