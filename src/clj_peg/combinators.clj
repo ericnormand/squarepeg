@@ -1,9 +1,11 @@
 (ns clj-peg.combinators)
 
-;; A rule is a function [input bindings] -> {:i seq :b {symbol vec} :r vec}
-;;                                       OR {:fail str} to signal failure
+;; A rule is a function [input bindings]
+;; -> {:i seq :b {:keyword value} :r value :s seqvalue }
+;; OR {:fail str} to signal failure
 ;; input is a seq of the rest of the input
-;; bindings is a map from symbol to vecs of output
+;; bindings is a map from keywords to values of output
+;; 
 ;; :fail is a failure message for the user
 
 ;; define success and failure

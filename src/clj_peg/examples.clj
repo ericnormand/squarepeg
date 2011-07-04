@@ -76,7 +76,7 @@
 ;; a number
 (def expr (mkscope (mkalt [(mksub #'addition)
                            (mksub #'multiplication)
-                           #'fncall
+                           (mksub #'fncall)
                            match-symbol
                            match-number])))
 
@@ -86,7 +86,7 @@
 
 ;; an addition expression is a + followed by arguments
 ;; args will recursively optimize the arguments
-(def addition (mkscope (mkret (mkseq [(mklit '+) (mkbind args :args)])
+(def addition (mkscope (mkret (mkseq [(mklit '+) (mkbind #'args :args)])
                               ;;find the literal numbers
                               #(let [[nums other] (separate number? (:args %))
                                      sum (apply + nums)]
@@ -107,7 +107,7 @@
                                   :otherwise 
                                   `(+ ~sum ~@other))))))
 
-(def multiplication (mkscope (mkret (mkseq [(mklit '*) (mkbind args :args)])
+(def multiplication (mkscope (mkret (mkseq [(mklit '*) (mkbind #'args :args)])
                               ;;find the literal numbers
                               #(let [[nums other] (separate number? (:args %))
                                      prod (apply * nums)]
@@ -128,7 +128,9 @@
                                   ;; otherwise, return the addition
                                   :otherwise 
                                   `(* ~prod ~@other))))))
-(def fncall match-list)
+(def fncall (mkscope (mkret (mkseq [(mkbind match-symbol :sym) (mkbind #'args :args)])
+                            (fn [b]
+                              `(~(:sym b) ~@(:args b))))))
 
 ;; match all args up to the end
 (def args (mkseq [(mkzom #'expr) end]))
