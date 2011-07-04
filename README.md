@@ -252,12 +252,14 @@ is given matches, it returns its value. Otherwise, it succeeds with no
 return.
 
 Example:
+
     ;; optionally match 'xyz'
     (def xyz? (mkopt (mkstr "xyz")))
 
 <code>mklit</code> creates a rule that matches a value if it is equal.
 
 Example:
+
     ;; match the number 12
     (def twelve (mklit 12))
     (twelve [12] {}) => {:r 12 :s [12] :i nil :b {}}
@@ -266,6 +268,7 @@ Example:
 characters of a string.
 
 Example:
+
     ;; match the string "hello" followed by whitespace
     (def hellow+ (mkseq [(mkstr "hello") (mk1om whitespace)]))
 
