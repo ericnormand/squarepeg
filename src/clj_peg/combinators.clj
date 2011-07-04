@@ -1,7 +1,7 @@
 (ns clj-peg.combinators)
 
 ;; A rule is a function [input bindings context memo]
-;; -> {:i seq :b {symbol vec} :r vec :m memo}
+;; -> {:i seq :b {symbol vec} :r value :s seqvalue :m memo}
 ;; OR {:fail str :m memo} to signal failure
 ;; input is a seq of the rest of the input
 ;; bindings is a map from keyword to value
