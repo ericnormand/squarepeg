@@ -3,13 +3,13 @@
 ## Credits and Acknowledgements
 
 This software was written by Eric Normand and is released under the
-[Eclipse Public License]. You can [find it on github|github].
+[Eclipse Public License]. You can [find it on github][github].
 
 [github]: http://github.com/ericnormand/clj-peg
 
 [Eclipse Public License]: http://opensource.org/licenses/eclipse-1.0.php
 
-Special thanks also goes to [Christophe Grand|cgrand]
+Special thanks also goes to [Christophe Grand][cgrand]
 
 [cgrand]: http://clj-me.cgrand.net/
 
