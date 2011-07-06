@@ -1,5 +1,18 @@
 #clj-peg
 
+## Credits and Acknowledgements
+
+This software was written by Eric Normand and is released under the
+[Eclipse Public License]. You can [find it on github|github].
+
+[github]: http://github.com/ericnormand/clj-peg
+
+[Eclipse Public License]: http://opensource.org/licenses/eclipse-1.0.php
+
+Special thanks also goes to [Christophe Grand|cgrand]
+
+[cgrand]: http://clj-me.cgrand.net/
+
 ##Introduction
 
 clj-peg is a library for defining PEGs. PEG stands for Parsing
@@ -280,7 +293,7 @@ Example:
 <code>mkmemo</code> creates a new rule which memoizes the given
 rule. The best way to use this is directly inside of a
 <code>mkscope</code> when defining a top-level rule for most efficient
-results.
+results. Memoizing is done to 
 
 ###Predefined rules
 
