@@ -1,5 +1,16 @@
+;; Copyright (c) Eric Normand. All rights reserved.
+;;
+;; The use and distribution terms for this software are covered by the
+;; Eclipse Public License 1.0 [1] which can be found in the file
+;; epl-v10.html at the root of this distribution.  By using this
+;; software in any fashion, you are agreeing to be bound by the terms
+;; of this license.
+;;
+;; [1]: http://opensource.org/licenses/eclipse-1.0.php
+;;
+;; You must not remove this notice, or any other, from this software.
 (ns clj-peg.examples
-  (:use [clj-peg.combinators :as peg]))
+  (:use clj-peg.combinators))
 
 ;; match 0 or more whitespace
 (def w** (mkscope (mkzom whitespace)))
@@ -45,7 +56,7 @@
 ;; mutually or self-recursive rules
 ;; note that because we use #' and we have predeclared, the rules can
 ;; appear in any order
-(def term (mkscope (mkmemo (mkalt [(mkret (mkseq [open w* (mkbind #'sum :value) w* close]) :value)
+(def term (mkscope (mkmemo (mkalt [(mkret (mkseq [open w* (mkbind #'sum :value) w* close]) (fn [b c] (:value b)))
                                    integer]))))
 
 (def product (mkscope (mkmemo (mkalt [(mkret (mkseq [(mkbind term :a) w* times w* (mkbind #'product :b)])
@@ -60,6 +71,9 @@
 
 ;; create a convenient function to call the rule with
 (def calc (mkfn #'sum))
+
+;; try (calc "(2 +4) * 9")
+;; try (calc "2 + 4 * 9")
 
 ;; a future release will contain a dsl for defining the rules more conveniently
 
