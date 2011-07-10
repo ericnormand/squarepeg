@@ -13,6 +13,22 @@ Special thanks also goes to [Christophe Grand][cgrand]
 
 [cgrand]: http://clj-me.cgrand.net/
 
+## Quickstart
+
+### To use in your project.
+
+Add <code>[clj-peg "0.3.0"]</code> to your projects dependencies then
+run.
+
+    lein deps
+
+In the relevant code, add the following to you <code>ns</code>
+declaration:
+
+    (:use clj-peg.combinators)
+
+Recompile and you can start using clj-peg.
+
 ## Introduction
 
 clj-peg is a library for defining PEGs. PEG stands for Parsing
