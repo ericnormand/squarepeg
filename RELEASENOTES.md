@@ -1,5 +1,15 @@
 # History
 
+### 0.4.0
+
+This release will create/complete a test suite for the parser. Success
+and failure cases will test every possible exit point of the
+individual parser combinators. There is a small number of them and
+each is simple, so this should not be difficult.
+
+In addition, practical combinations of the combinators will be tested
+to ensure that the parser works as one would intuit.
+
 ### 0.3.0
 
 I have added a combinator that should increase the usefulness of the
