@@ -13,7 +13,7 @@ Special thanks also goes to [Christophe Grand][cgrand]
 
 [cgrand]: http://clj-me.cgrand.net/
 
-##Introduction
+## Introduction
 
 clj-peg is a library for defining PEGs. PEG stands for Parsing
 Expression Grammar.
@@ -293,7 +293,21 @@ Example:
 <code>mkmemo</code> creates a new rule which memoizes the given
 rule. The best way to use this is directly inside of a
 <code>mkscope</code> when defining a top-level rule for most efficient
-results. Memoizing is done to 
+results. Memoizing is done to trade space efficiency for time
+efficiency. Effectively using mkmemo will make a parse use linear
+space and linear time with respect to input size.
+
+<code>mkmatch</code> create a new rule which returns the matched
+portion of the input. It binds that portion of the input matched by
+the given rule to :match. It also coerces Strings if possible.
+
+Example:
+
+    ;; match a "SELECT" statement in a contrived query language.
+    ;; perform a "lookup" of everything after the SELECT followed
+    ;; by whitespace
+    (def selectstmt (mkscope (mkmemo (mkret (mkseq [(mkstr "SELECT") w+
+       (mkmatch (mk1om anything))]) (fn [b c] (lookup (:match b))))))
 
 ###Predefined rules
 

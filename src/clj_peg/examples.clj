@@ -29,11 +29,10 @@
 (def clj-comment (mkscope (mkmemo (mkseq [(mklit \;) (mkzom non-newline) (mkalt [newline end])]))))
 
 ;; match an integer and parse it
-;; the (apply str ) is necessary at the moment to convert the seq of
-;; chars back to a string
+;; this will only work if context contains :expected-type :string
 ;; mkscope is important to preven the binding of :ret (from mkret) to
 ;; leak out to the calling rule
-(def integer (mkscope (mkmemo (mkret (mk1om digit) (fn [b c] (Integer/parseInt (apply str (:ret b))))))))
+(def integer (mkscope (mkmemo (mkret (mk1om digit) (fn [b c] (Integer/parseInt (:ret b)))))))
 
 ;; match a + character
 (def plus (mkscope (mklit \+)))
@@ -84,7 +83,7 @@
 
 (def optimize- (mkfn #'expr))
 (defn optimize [e]
-  (optimize- [e] {:print-hits true}))
+  (optimize- [e]))
 
 ;; an expression is a (+) expr, a (*) expr, another fncall, a var, or
 ;; a number

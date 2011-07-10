@@ -1,14 +1,5 @@
 ## Future History (planning)
 
-### 0.3.0
-
-I will add a combinator that should increase the usefulness of the
-parser. It will bind the matched input seq to :match, which will then
-be available to subsequent rules.
-
-This will require the scoping combinator <code>mkscope</code> to work
-safely.
-
 ### 0.4.0
 
 This release will create/complete a test suite for the parser. Success

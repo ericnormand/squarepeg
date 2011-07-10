@@ -35,11 +35,19 @@
   "Is x a success?"
   (not (failure? x)))
 
+(defn- coerce [v t]
+  (if (and (= :string t) (sequential? v) (every? char? v))
+    (apply str v)
+    v))
+
 (defn mkfn [f]
   "Create a function useful for calling a rule at the REPL."
   (fn ff
     ([input]
-       (ff input {}))
+       (let [context (if (string? input)
+                       {:expected-type :string}
+                       {})] 
+        (ff input context)))
     ([input context]
        (let [r (f input {} context {})]
          (if (success? r)
@@ -62,7 +70,7 @@ succeeds otherwise."
   (fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
       (if (success? r)
-        (succeed (:r r) (:s r) (:i r) (assoc (:b r) var (:r r)) (:m r))
+        (succeed (:r r) (:s r) (:i r) (assoc (:b r) var (coerce (:r r) (:expected-type context))) (:m r))
         r))))
 
 (defn mkpr [pr]
@@ -83,7 +91,7 @@ value of rule to :ret."
   (fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
       (if (success? r)
-        (let [b (assoc (:b r) :ret (:r r))
+        (let [b (assoc (:b r) :ret (coerce (:r r) (:expected-type context)))
               v (ret b context)]
           (succeed v [v] (:i r) b (:m r)))
         r))))
@@ -234,6 +242,26 @@ sequence."
                             key  (dissoc r :m)
                             :miss (inc ((:m r) :miss 0)))))))
         (rule input bindings context memo)))))
+
+(defn- unhead [l tl]
+  (cond
+   (nil? (seq l))
+   nil
+   (= l tl)
+   nil
+   :otherwise
+   (lazy-seq (cons (first l) (unhead (rest l) tl)))))
+
+(defn mkmatch [rule]
+  "Create a rule that binds the input sequence that is matched
+  to :match."
+  (fn [input bindings context memo]
+    (let [before input
+          r (rule input bindings context memo)
+          after (:i r)]
+      (if (failure? r)
+        r
+        (succeed (:r r) (:s r) (:i r) (assoc (:b r) :match (coerce (unhead before after) (:expected-type context))) (:m r))))))
 
 ;; utilities
 

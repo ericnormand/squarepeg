@@ -1,5 +1,18 @@
 # History
 
+### 0.3.0
+
+I have added a combinator that should increase the usefulness of the
+parser. It will bind the matched input seq to :match, which will then
+be available to subsequent rules.
+
+This requires the scoping combinator <code>mkscope</code> to work
+safely.
+
+I've also added logic to maintain the String type for the match when
+the input is a String. Getting a vec of chars is not the expected
+behavior.
+
 ### 0.2.0
 
 This release will add memoizing and add support for immutable data
