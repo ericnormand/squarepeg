@@ -17,7 +17,7 @@ Special thanks also goes to [Christophe Grand][cgrand]
 
 ### To use in your project.
 
-Add <code>[clj-peg "0.3.0"]</code> to your projects dependencies then
+Add <code>[clj-peg "0.5.0"]</code> to your projects dependencies then
 run.
 
     lein deps
