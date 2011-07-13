@@ -22,6 +22,10 @@ run.
 
     lein deps
 
+To run the tests, run
+
+   lein test
+
 In the relevant code, add the following to you <code>ns</code>
 declaration:
 
