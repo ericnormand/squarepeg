@@ -9,7 +9,7 @@
 ;; [1]: http://opensource.org/licenses/eclipse-1.0.php
 ;;
 ;; You must not remove this notice, or any other, from this software.
-(defproject clj-peg "0.3.0"
+(defproject clj-peg "0.4.0"
   :description "clj-peg is a PEG parser written in Clojure.  It can
   parse any sequence of data types, including lists and vectors."
   
