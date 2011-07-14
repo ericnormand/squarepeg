@@ -112,17 +112,17 @@ returns nothing."
 (defn- noreturn? [r]
   (and (nil? (:r r)) (nil? (seq (:s r)))))
 
-(defn- catreturns [r1 r2]
+(defn- catreturns [r1 r2 context]
   (cond
    (noreturn? r1)
-   [(:r r2) (:s r2)]
+   [(coerce (:r r2) (:expected-type context)) (:s r2)]
 
    (noreturn? r2)
-   [(:r r1) (:s r1)]
+   [(coerce (:r r1) (:expected-type context)) (:s r1)]
 
    :otherwise
    (let [val (vec-cat (:s r1) (:s r2))]
-     [val val])))
+     [(coerce val (:expected-type context)) val])))
 
 (defn mkcat [rule1 rule2]
   "Create a rule that matches rule1 followed by rule2. Returns a vec
@@ -134,7 +134,7 @@ of all return values."
         (let [r2 (rule2 (:i r1) (:b r1) context (:m r1))]
           (if (failure? r2)
             r2
-            (let [[r s] (catreturns r1 r2)]
+            (let [[r s] (catreturns r1 r2 context)]
               (succeed r s (:i r2) (:b r2) (:m r2)))))))))
 
 (defn mkseq [rules]
@@ -265,6 +265,15 @@ sequence."
 
 ;; utilities
 
+(defmacro defrule
+  ([name body]
+     (list 'def
+           (with-meta name
+             {:arglists ''([input] [input context] [input bindings context memo])
+              :doc (str name " is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).")})
+           `(mkfn ~body))))
+
 (def always (mkpred (constantly true)))
 (def never  (mkpred (constantly false)))
 (def anything (mkpr (constantly true)))
@@ -272,6 +281,8 @@ sequence."
 (def whitespace (mkpr #(Character/isSpace %)))
 
 (def digit (mkpr #(Character/isDigit %)))
+(def alpha (mkpr #(Character/isLetter %)))
+(def alphanum (mkpr #(Character/isLetterOrDigit %)))
 
 (def end (mknot anything))
 

@@ -199,4 +199,10 @@
     (is (= "a" (:match (:b r)))))
   )
 
-(deftest test-mkfn)
+(deftest test-defrule
+  (defrule b (mkpr even?))
+  (is (:r (b [2] {} {} {})))
+  (is (:fail (b [1] {} {} {})))
+  (is (= 2 (b [2])))
+  (is (:doc (meta #'b)))
+  (is (:arglists (meta #'b))))
