@@ -21,18 +21,22 @@
 ;; :fail is a failure message for the user
 
 ;; define success and failure
-(defn fail [msg memo]
+(defn fail
   "Fail a rule call with the given msg"
+  [msg memo]
   {:fail msg :m memo})
-(defn failure? [x]
+(defn failure?
   "Is x a failure?"
+  [x]
   (:fail x))
 
-(defn succeed [return sreturn input bindings memo]
+(defn succeed
   "Succeed a rule call."
+  [return sreturn input bindings memo]
   {:i input :b bindings :r return :s sreturn :m memo})
-(defn success? [x]
+(defn success?
   "Is x a success?"
+  [x]
   (not (failure? x)))
 
 (defn- coerce [v t]
@@ -40,14 +44,15 @@
     (apply str v)
     v))
 
-(defn mkfn [f]
+(defn mkfn
   "Create a function useful for calling a rule at the REPL."
+  [f]
   (fn ff
     ([input]
        (let [context (if (string? input)
                        {:expected-type :string}
                        {})] 
-        (ff input context)))
+         (ff input context)))
     ([input context]
        (let [r (f input {} context {})]
          (if (success? r)
@@ -56,26 +61,29 @@
     ([input bindings context memo]
        (f input bindings context memo))))
 
-(defn mknot [rule]
+(defn mknot
   "Create a rule that fails if the next input matches rule and
 succeeds otherwise."
+  [rule]
   (fn not-fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
       (if (failure? r)
         (succeed nil [] input bindings (:m r))
         (fail (str "NOT failed") (:m r))))))
 
-(defn mkbind [rule var]
+(defn mkbind
   "Create a rule that binds the return value of rule to var."
+  [rule var]
   (fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
       (if (success? r)
         (succeed (:r r) (:s r) (:i r) (assoc (:b r) var (coerce (:r r) (:expected-type context))) (:m r))
         r))))
 
-(defn mkpr [pr]
+(defn mkpr
   "Create a rule that consumes one item from the input. If pr applied
 to that item returns true, the rule succeeds. Otherwise, fail."
+  [pr]
   (fn [input bindings context memo]
     (if (nil? (seq input))
       (fail "End of input" memo)
@@ -84,10 +92,11 @@ to that item returns true, the rule succeeds. Otherwise, fail."
           (succeed i [i] (rest input) bindings memo)
           (fail (str i " does not match predicate.") memo))))))
 
-(defn mkret [rule ret]
+(defn mkret
   "Create a rule that returns a value. The value is computed by ret,
 which is a function of a bindings map. The rule also binds the return
 value of rule to :ret."
+  [rule ret]
   (fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
       (if (success? r)
@@ -96,9 +105,10 @@ value of rule to :ret."
           (succeed v [v] (:i r) b (:m r)))
         r))))
 
-(defn mknothing [rule]
+(defn mknothing
   "Create a rule that succeeds, fails, and consumes just like rule but
 returns nothing."
+  [rule]
   (fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
       (if (success? r)
@@ -124,9 +134,10 @@ returns nothing."
    (let [val (vec-cat (:s r1) (:s r2))]
      [val val])))
 
-(defn mkcat [rule1 rule2]
+(defn mkcat
   "Create a rule that matches rule1 followed by rule2. Returns a vec
 of all return values."
+  [rule1 rule2]
   (fn [input bindings context memo]
     (let [r1 (rule1 input bindings context memo)]
       (if (failure? r1)
@@ -137,22 +148,25 @@ of all return values."
             (let [[r s] (catreturns r1 r2)]
               (succeed r s (:i r2) (:b r2) (:m r2)))))))))
 
-(defn mkseq [rules]
+(defn mkseq
   "Create a rule that matches all of rules in order. Returns a vec of
 the return values of each."
+  [rules]
   (reduce mkcat #(succeed nil [] %1 %2 %4) rules))
 
-(defn mkeither [rule1 rule2]
+(defn mkeither
   "Create a rule that tries to match rule1. If it succeeds, the rule
 succeeds. Otherwise, it calls rule2."
+  [rule1 rule2]
   (fn [input bindings context memo]
     (let [r1 (rule1 input bindings context memo)]
       (if (failure? r1)
         (rule2 input bindings context (:m r1))
         r1))))
 
-(defn mkalt [rules]
+(defn mkalt
   "Create a rule which succeeds if one of rules succeeds."
+  [rules]
   (cond
    (nil? (seq rules))
    #(fail "no rules to match" %4)
@@ -163,18 +177,20 @@ succeeds. Otherwise, it calls rule2."
    :otherwise
    (reduce mkeither rules)))
 
-(defn mkpred [f]
+(defn mkpred
   "Create a rule which never returns a value or consumes input. It
 succeeds if f returns non-nil and fails otherwise. f is a function of
 input bindings and context."
+  [f]
   (fn [input bindings context memo]
     (if (f bindings context)
       (succeed nil [] input bindings memo)
       (fail "Failed to match predicate" memo))))
 
-(defn mkzom [rule]
+(defn mkzom
   "Create a rule which matches rule consecutively as many times as
 possible. The rule never fails. Returns a seq of all matched values."
+  [rule]
   (fn [input bindings context memo]
     (loop [val [] input input bindings bindings memo memo]
       (let [r (rule input bindings context memo)]
@@ -182,18 +198,20 @@ possible. The rule never fails. Returns a seq of all matched values."
           (recur (vec-cat val (:s r)) (:i r) (:b r) (:m r))
           (succeed val val input bindings memo))))))
 
-(defn mkscope [rule]
+(defn mkscope
   "Create a rule which contains the scope of the given rule. Bindings
 made in rule do not escape this rule's scope."
+  [rule]
   (fn [input bindings context memo]
     (let [r (rule input {} context memo)]
       (if (success? r)
         (succeed (:r r) (:s r) (:i r) bindings (:m r))
         r))))
 
-(defn mksub [rule]
+(defn mksub
   "Create a rule which applies a rule to a nested seq within the
 input."
+  [rule]
   (fn [input bindings context memo]
     (if (and (seq input) (sequential? (first input)))
       (let [r (rule (first input) bindings context memo)]
@@ -202,13 +220,15 @@ input."
           r))
       (fail "Input not a seq." memo))))
 
-(defn mk1om [rule]
+(defn mk1om
   "Create a rule which matches rule as many times as possible but at
 least once."
+  [rule]
   (mkseq [rule (mkzom rule)]))
 
-(defn mkopt [rule]
+(defn mkopt
   "Create a rule which matches rule or not, but never fails."
+  [rule]
   (fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
       (if (failure? r)
@@ -216,18 +236,21 @@ least once."
         r))))
 
 ;; literal matcher
-(defn mklit [l]
+(defn mklit
   "Create a rule which consumes one item of input. If it is equal to
 l, succeed."
+  [l]
   (mkpr #(= l %)))
 
-(defn mkstr [s]
+(defn mkstr
   "Create a rule which matches all of the characters of a String s in
 sequence."
+  [s]
   (mkseq (map mklit s)))
 
-(defn mkmemo [rule]
+(defn mkmemo
   "Create a rule that memoizes the given rule."
+  [rule]
   (let [memoid (gensym)]
     (fn [input bindings context memo]
       (if memo
@@ -252,9 +275,10 @@ sequence."
    :otherwise
    (lazy-seq (cons (first l) (unhead (rest l) tl)))))
 
-(defn mkmatch [rule]
+(defn mkmatch
   "Create a rule that binds the input sequence that is matched
   to :match."
+  [rule]
   (fn [input bindings context memo]
     (let [before input
           r (rule input bindings context memo)
