@@ -16,4 +16,5 @@
   :dependencies     [[org.clojure/clojure  "[1.2.0,)"]]
   
   :dev-dependencies [[leiningen/lein-swank "[1.1.0,)"]
-                     [swank-clojure        "[1.2.0,)"]])
+                     [swank-clojure        "[1.2.0,)"]
+                     [lein-marginalia      "0.6.0"]])

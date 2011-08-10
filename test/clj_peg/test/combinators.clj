@@ -288,4 +288,26 @@
     {? number?})
   (is (= 5 (r21 [5])))
   (is (thrown? Exception (r21 [\5])))
+  (defrule r22
+    [{:a 1} 2 3] #{:a})
+  (is (= 1 (r22 [1 2 3])))
+  (defrule r23
+    [{:a 1} 2 3] #{:b})
+  (is (thrown? Exception (r23 [1 2 3])))
+  (defrule r24
+    [1 2 3] #{10})
+  (is (= 10 (r24 [1 2 3])))
+  (defrule r25
+    [1 2 3] #{\a})
+  (is (= \a (r25 [1 2 3])))
+  (defrule r26
+    [1 2 3] #{"abc"})
+  (is (= "abc" (r26 [1 2 3])))
+  (def lll (fn [b c] (+ (:a b) (:b b))))
+  (defrule r27
+    [{:a 1} {:b 2} 333] #{lll})
+  (is (= 3 (r27 [1 2 333])))
+  (defrule r28
+    [1 2 3] #{'l})
+  (is (= 'l (r28 [1 2 3])))
   )

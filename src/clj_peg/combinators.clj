@@ -283,7 +283,7 @@ sequence."
 
 (defn- transbody
   ([]
-     (mkalt))
+     `(mkalt))
   ([a]
      (cond
       (and (list? a)
@@ -332,6 +332,18 @@ sequence."
       a))
   ([a b & cs]
      (cond
+      (and (set? b)
+           (keyword? (first b)))
+      `(mkalt (mkret ~(transbody a)
+                     (fn [b# c#]
+                       (if (contains? b# ~(first b))
+                         (~(first b) b#)
+                         (throw (RuntimeException. (str "Binding does not exist: " ~(first b)))))))
+              ~(apply transbody cs))
+      (and (set? b)
+           (some #(% (first b)) [number? char? string? vector? set? map? #(and (seq? %) (= 'quote (first %)))]))
+      `(mkalt (mkret ~(transbody a) (constantly ~(first b)))
+              ~(apply transbody cs))
       (set? b)
       `(mkalt (mkret ~(transbody a) ~(first b))
               ~(apply transbody cs))
@@ -369,5 +381,3 @@ sequence."
 (def match-string  (mkpr string?  ))
 (def match-symbol  (mkpr symbol?  ))
 (def match-vector  (mkpr vector?  ))
-
-
