@@ -2,20 +2,51 @@
 
 ### 0.5.0
 
-This release will be the last foreseeable release before 1.0.0. It
-will mainly be work to make parsers simpler to define and share, as
-well as enabling use by other languages on the JVM.
+This release will mainly be work to make parsers simpler to define and
+share.
 
-Although it is not entirely planned at the moment, here are some
-thoughts that may make it into the final release:
+Mainly, this involved reorganizing the namespace, paring down the
+combinators, and creating a macro for helping to define new rules.
 
-* An external DSL to define rules. The rules would be made available
-  in the current namespace (via <code> (def . . .) </code>). The DSL
-  could be defined in a String or in an external file.
-* A macro for generating a parser class suitable for use by Java.
-* Macros to compile the parser at compile time instead of at runtime.
-* A parser-generator class suitable for use by Java.
-* A mechanism for augmenting the failure message.
+The namespace is now flatter. You <code>(use 'clj-peg)</code> instead
+of <code>(use 'clj-peg.combinators)</code> like it used to be. There
+is still <code>clj-peg.examples</code> but you should rarely have to
+import that.
+
+The binary sequence and alternation combinators (<code>mkcat</code>
+and <code>mkeither</code>) have been removed. <code>mkseq</code> now
+has definitions for different numbers of parameters. It also no longer
+takes a seq of rules. Instead, it takes a variable number of rules as
+arguments. What was removed was truly unnecessary. In the spirit of
+Clojure's minimalism with indenting and nesting, I removed a level of
+nesting.
+
+I've made a dsl in the form of a macro. I know everyone is all about
+internal dsls using the built-in data structures. But I tried that
+many times in different ways in vain. There are just too many
+combinators to be able to create something that can be recombined
+without complex semantics.
+
+But don't worry! The <code>defrule</code> macro has some very simple
+semantics. It started out simply as a wrapper for <code>def</code> and
+evolved organically from that. For example, it's a good idea to always
+wrap your rules in a <code>mkscope</code> and a <code>mkmemo</code>,
+so <code>defrule</code> automatically does that. Then I added
+<code>mkseq</code> automatically when you use a vec. It grew from
+there.
+
+The dsl is now recursively complete, meaning you can nest things
+arbitrarily. And it still works for the more classical combinator
+usage.
+
+One last thing: I've started using [Marginalia] to generate
+documentation. I'm a little disappointed by how it looks, but I've got
+a release in the FUTUREPLANS.md dedicated to sprucing it up.
+
+marginalia: https://github.com/fogus/marginalia
+
+I've also managed to keep up the test-driven development, so every
+line of code in the library (apart from examples) are tested.
 
 ### 0.4.0
 

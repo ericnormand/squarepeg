@@ -17,40 +17,34 @@ Special thanks also goes to [Christophe Grand][cgrand] for his help.
 
 ### To use in your project.
 
-Add <code>[clj-peg "0.5.0"]</code> to your projects dependencies then
+Add <code>[clj-peg "0.5.0"]</code> to your project's dependencies then
 run.
 
     lein deps
 
-To run the tests, run
-
-   lein test
-
 In the relevant code, add the following to you <code>ns</code>
 declaration:
 
-    (:use clj-peg.combinators)
+    (:use clj-peg)
 
-Recompile and you can start using clj-peg.
+### To hack the code
+
+    git clone git@github.com:ericnormand/clj-peg.git
+    cd clj-peg
+    lein deps
+    lein test    # run the tests
 
 ## Introduction
 
 clj-peg is a library for defining PEGs. PEG stands for Parsing
 Expression Grammar.
 
-The library defines a set of parser combinator creating rules.
+The library defines a set of parser combinators for creating grammar
+rules.
 
-Parsers created with clj-peg are data-structure agnostic. They can
-operate on any seq and on any data type in the seq. The parsers can be
-used to define DSLs using Clojure data structures. clj-peg can also be
-used to define traditional text parsers.
-
-I originally intended to write a DSL for defining clj-peg
-parsers. This turned out to be more difficult than I at first
-imagined. With release 0.1.0, the code attempting to do that has been
-deleted. You can find it in the git history, if you wish to revert.
-
-http://github.com/ericnormand/clj-peg
+Parsers created with clj-peg are data-structure agnostic. They can of
+course input Java Strings. But they can also input any seq. This means
+you can apply a grammar to a sequence of Integers, for example.
 
 You may want to jump right in to the examples in
 src/clj_peg/examples.clj
@@ -123,10 +117,6 @@ have the parser consider it to be a single value, you would set :r to
 :s is primarily used by the mkseq combinator to collect return values
 of its subrules.
 
-*NOTE*: This may or may not change in a future version. The current
- functionality is somewhat confusing and does not always yield
- expected results.
-
 ###Failure
 
 Failure is a map with two values, :fail and :m, which are mapped to
@@ -195,38 +185,21 @@ Example:
     ;; ignore whitespace
     (def ignorewhitespace (mknothing (mk1om #(Character/isSpace %))))
 
-<code>mkcat</code> takes two rules and returns a rule that will
-require the first rule to match and then required the second rule to
-match.
-
-Example:
-
-    ;; match an even number followed by an odd number
-    (def evenodd (mkcat (mkpr even?) (mkpr odd?)))
-
-<code>mkseq</code> takes a seq of rules and creates a rule that must
+<code>mkseq</code> takes any number of rules and creates a rule that must
 match all of them in sequence.
 
 Example:
 
     ;; match three even numbers then two odds
-    (def even3odd2 (mkseq [even even even odd odd]))
+    (def even3odd2 (mkseq even even even odd odd))
 
-<code>mkeither</code> takes two rules and returns a new rule wherein
-if the first rules fails, the second one is tried.
-
-Example:
-
-    ;; match either 'a' or 'b' (in that order)
-    (def aorb (mkeither (mklit \a) (mklit \b)))
-
-<code>mkalt</code> takes a seq of rules and tries each one in
+<code>mkalt</code> takes any number of rules and tries each one in
 order. The first rule that matches is returned.
 
 Example:
 
     ;; match 'a' or 'b' or 'c' (in that order)
-    (def aorborc (mkalt [(mklit \a) (mklit \b) (mklit \c)]))
+    (def aorborc (mkalt (mklit \a) (mklit \b) (mklit \c)))
 
 <code>mkpred</code> takes a predicate and returns a rule that succeeds
 when the predicate applied to the first input element succeeds. It
@@ -236,8 +209,8 @@ on the bindings map.
 Example:
 
     ;; match two numbers if their sum > 100
-    (def sum>100 (mkseq [(mkbind integer :a) (mkbind integer :b)
-                         (mkpred #(> (+ (:a %) (:b %)) 100))]))
+    (def sum>100 (mkseq (mkbind integer :a) (mkbind integer :b)
+                        (mkpred #(> (+ (:a %) (:b %)) 100))))
 
 <code>mkzom</code> creates a rule which matches zero or more times. It
 will match the most possible times. It never fails.
@@ -256,10 +229,10 @@ Example:
     ;; a rule that binds but does not protect
     (def as (mkbind (mk1om (mklit \a)) :as))
     ;; a rule that calls as
-    (def xab (mkseq [(mkbind (mk1om (mklit \x)) :as) ;; bind to :as
-                     (mkscope as)                    ;; make sure as
-                                                     ;; does not bind
-                     (mk1om (mklit \b))]))
+    (def xab (mkseq (mkbind (mk1om (mklit \x)) :as) ;; bind to :as
+                    (mkscope as)                    ;; make sure as
+                                                    ;; does not bind
+                    (mk1om (mklit \b))))
 
 <code>mksub</code> creates a rule that matches a nested seq within the
 seq.
@@ -269,7 +242,7 @@ Example:
     ;; match a seq of ones
     (def ones (mk0om (mklit 1)))
     ;; match a seq of ones followed by 2s
-    (def anesthetics (mkseq [(mksub ones) (mk0om (mklit 2))]))
+    (def onesthentwos (mkseq (mksub ones) (mk0om (mklit 2))))
     (onesthentwos [[1 1 1] 2 2] {}) => SUCCESS
     (onesthentwos [1 1 1 2 2] {}) => FAILURE
 

@@ -2529,7 +2529,7 @@ $(document).ready(function() {
 })
 </script><title>clj-peg -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">clj-peg</h1><h2 class="project-version">0.5.0</h2><br /><p>clj-peg is a PEG parser written in Clojure.  It can
   parse any sequence of data types, including lists and vectors.</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">[1.2.0,)</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">leiningen/lein-swank</td><td class="dotted"><hr /></td><td class="dep-version">[1.1.0,)</td></tr><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">[1.2.0,)</td></tr><tr><td class="dep-name">lein-marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.6.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#clj-peg.examples">clj-peg.examples</a></li><li><a href="#clj-peg.dsl">clj-peg.dsl</a></li><li><a href="#clj-peg.combinators">clj-peg.combinators</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-peg.examples" name="clj-peg.examples"><h1 class="project-name">clj-peg.examples</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Eric Normand. All rights reserved.</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">[1.2.0,)</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">leiningen/lein-swank</td><td class="dotted"><hr /></td><td class="dep-version">[1.1.0,)</td></tr><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">[1.2.0,)</td></tr><tr><td class="dep-name">lein-marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.6.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#clj-peg">clj-peg</a></li><li><a href="#clj-peg.examples">clj-peg.examples</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-peg" name="clj-peg"><h1 class="project-name">clj-peg</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Eric Normand. All rights reserved.</p>
 
 <p>The use and distribution terms for this software are covered by the
 Eclipse Public License 1.0 <a href="http://opensource.org/licenses/eclipse-1.0.php">1</a> which can be found in the file
@@ -2538,241 +2538,7 @@ software in any fashion, you are agreeing to be bound by the terms
 of this license.</p>
 
 <p>You must not remove this notice, or any other, from this software.</p>
-</td><td class="codes" /><pre class="brush: clojure">(ns clj-peg.examples
-  (:use clj-peg.combinators))</pre></tr><tr><td class="docs"><p>w** is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>match 0 or more whitespace</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule  w**  {whitespace *})</pre></tr><tr><td class="docs"><p>w* is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>match 0 or more whitespace but return nothing
-(effectively ignoring whitespace)</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule w* (mknothing (mkzom whitespace)))</pre></tr><tr><td class="docs"><p>newline is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>match a newline</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule newline \newline)</pre></tr><tr><td class="docs"><p>non-newline is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>match anything that is not a newline</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule non-newline [{! newline} anything])</pre></tr><tr><td class="docs"><p>clj-comment is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>match clojure style single-line comments</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule clj-comment [\; {non-newline *} (or newline
-                                             end)])</pre></tr><tr><td class="docs"><p>integer is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>match an integer and parse it
-this will only work if context contains :expected-type :string</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule integer {digit +} #{(fn [b c] (Integer/parseInt (:ret b)))})</pre></tr><tr><td class="docs"><p>plus is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>match a + character</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule plus \+)</pre></tr><tr><td class="docs"><p>times is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>match a * character</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule times \*)</pre></tr><tr><td class="docs"><p>open is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>match an open paren</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule open \()</pre></tr><tr><td class="docs"><p>close is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>match a close paren</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule close \))</pre></tr><tr><td class="docs"><p>using the above rules, we can define a simple calculator</p>
-</td><td class="codes" /></tr><tr><td class="docs"><p>we must declare our variables here because the rules are mutually recursive</p>
-</td><td class="codes" /><pre class="brush: clojure">(declare sum product term)</pre></tr><tr><td class="docs"><p>term is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>also, it is often necessary to use the var (with #') when using
-mutually or self-recursive rules
-note that because we use #' and we have predeclared, the rules can
-appear in any order</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule term
-  [open w* {:value sum} w* close] #{(fn [b c] (:value b))}
-  integer)</pre></tr><tr><td class="docs"><p>product is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule product
-  [{:a term} w* times w* {:b product}] #{(fn [b c] (* (:a b) (:b b)))}
-  term)</pre></tr><tr><td class="docs"><p>sum is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule sum
-  [{:a product} w* plus w* {:b sum}] #{(fn [b c] (+ (:a b) (:b b)))}
-  product)</pre></tr><tr><td class="docs"><p>calc is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>create a convenient function to call the rule with</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule calc sum)</pre></tr><tr><td class="docs"><p>try (calc "(2 +4) * 9")
-try (calc "2 + 4 * 9")</p>
-</td><td class="codes" /></tr><tr><td class="docs"><p>a future release will contain a dsl for defining the rules more conveniently</p>
-</td><td class="codes" /></tr><tr><td class="docs"><p>besides operating on strings, we can also operate on seqs
-we can define a math-expression optimizer</p>
-</td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(declare addition multiplication expr fncall args)</pre></tr><tr><td class="docs"><p>optimize is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule optimize expr)</pre></tr><tr><td class="docs"><p>expr is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>an expression is a (+) expr, a (*) expr, another fncall, a var, or
-a number</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule expr
-  (=&gt; addition)
-  (=&gt; multiplication)
-  (=&gt; fncall)
-  match-symbol
-  match-number)</pre></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(defn separate [pr coll]
-  [(filter pr coll)
-   (filter (complement pr) coll)])</pre></tr><tr><td class="docs"><p>addition is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>an addition expression is a + followed by arguments
-args will recursively optimize the arguments</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule addition [(mklit '+) {:args args}]
-                   ;;find the literal numbers
-  #{(fn [b c]
-      (let [[nums other] (separate number? (:args b))
-            sum (apply + nums)]
-        (cond
-         ;; if there are only numbers, we
-         ;; don't need to add at runtime
-         (nil? (seq other))
-         sum
-         ;; if the sum is zero and only one
-         ;; other term, we don't need to add
-         (and (zero? sum) (nil? (rest other)))
-         (first other)
-         ;; if the sum is zero, just add the
-         ;; other terms
-         (zero? sum)
-         `(+ ~@other)
-         ;; otherwise, return the addition
-         :otherwise 
-         `(+ ~sum ~@other))))})</pre></tr><tr><td class="docs"><p>multiplication is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule multiplication  [(mklit '*) {:args args}]
-  ;;find the literal numbers
-  #{(fn [b c]
-      (let [[nums other] (separate number? (:args b))
-            prod (apply * nums)]
-        (cond
-         ;; if there are only numbers, we
-         ;; don't need to multiply at runtime
-         (nil? (seq other))
-         prod
-         ;; if the prod is zero, we return 0
-         (zero? prod)
-         0
-         ;; if the prod is 1, we don't need
-         ;; it
-         (and (= 1 prod) (nil? (rest other)))
-         (first other)
-         (= 1 prod)
-         `(* ~@other)
-         ;; otherwise, return the addition
-         :otherwise 
-         `(* ~prod ~@other))))})</pre></tr><tr><td class="docs"><p>fncall is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule fncall
-  [{:sym match-symbol} {:args args}] #{(fn [b c]
-                                         `(~(:sym b) ~@(:args b)))})</pre></tr><tr><td class="docs"><p>args is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>match all args up to the end</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule args [{expr *} end])</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-peg.dsl" name="clj-peg.dsl"><h1 class="project-name">clj-peg.dsl</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(ns clj-peg.dsl
-  (:use clj-peg.combinators))</pre></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(declare OR)</pre></tr><tr><td class="docs"><p>SP is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>QUOTE is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>CHAR is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>BAR is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>SEMI is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>STAR is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>PLUS is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule SP (mkzom whitespace))
-(defrule QUOTE (mklit \'))
-(defrule CHAR  (mkalt [(mkseq [(mklit \\) (map mklit &quot;abefnrtv'\&quot;[]\\&quot;)])
-                       (mkseq [(mknot (mklit \\)) anything])]))
-(defrule BAR (mkseq [(mklit \|) SP]))
-(defrule SEMI (mkseq [(mklit \;) SP]))
-(defrule STAR (mkseq [(mklit \*) SP]))
-(defrule PLUS (mkseq [(mklit \+) SP]))</pre></tr><tr><td class="docs"><p>OPEN is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>CLOSE is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule OPEN (mkseq [(mklit \() SP]))
-(defrule CLOSE (mkseq [(mklit \)) SP]))</pre></tr><tr><td class="docs"><p>IDENT is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>Trying to match legal clojure symbols, but this is good enough</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule IDENT (mkret (mkseq [(mkmatch (mkseq [(mkalt (cons alpha    (map mklit &quot;*+!-_?&quot;)))
-                                               (mkzom (mkalt (cons alphanum (map mklit &quot;*+!-_?/.&quot;))))]))
-                              SP])
-                      (fn [b c]
-                        (eval `(var ~(symbol (:match b)))))))</pre></tr><tr><td class="docs"><p>STRING is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule STRING (mkret (mkseq [QUOTE (mkmatch (mkzom (mkseq [(mknot QUOTE) CHAR]))) QUOTE SP])
-                       (fn [b c] (mkstr (:match b)))))</pre></tr><tr><td class="docs"><p>ACTION is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule ACTION (mkret (mkseq [(mkstr &quot;=&gt;&quot;)
-                               (mkmatch (mk1om (mkseq [(mknot SEMI) anything])))
-                               SEMI])
-                       (fn [b c]
-                         (read-string (:match b)))))</pre></tr><tr><td class="docs"><p>PRIMARY is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule PRIMARY (mkalt [STRING
-                         IDENT
-                         (mkret (mkseq [OPEN (mkbind #'OR :meat) CLOSE])
-                                (fn [b c]
-                                  (:meat b)))]))</pre></tr><tr><td class="docs"><p>SUFFIX is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule SUFFIX (mkalt [(mkret (mkseq [(mkbind PRIMARY :p) STAR])
-                               (fn [b c]
-                                 (mkzom (:p b))))
-                        (mkret (mkseq [(mkbind PRIMARY :p) PLUS])
-                               (fn [b c]
-                                 (mk1om (:p b))))
-                        PRIMARY]))</pre></tr><tr><td class="docs"><p>SEQ is a clj-peg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule SEQ (mkalt [ (mkret (mkseq [(mkbind (mk1om SUFFIX) :seq) (mkbind ACTION :action)])
-                                      (fn [b c]
-                                        (mkret (mkseq (:seq b))
-                                               (fn [x y]
-                                                  (eval (:action b))))))
-                      (mkret (mk1om SUFFIX)
-                             (fn [b c]
-                               (mkseq (:ret b))))]))</pre></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(defrule OR (mkret (mkalt [(mkseq [(mkbind SEQ :a) (mkzom (mkseq [BAR (mkbind OR :b)]))])])
-                   (fn [b c] (if (:b b)
-                              (mkalt [(:a b) (:b b)])
-                              (:a b)))))</pre></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(defrule pegdef OR)</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-peg.combinators" name="clj-peg.combinators"><h1 class="project-name">clj-peg.combinators</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Eric Normand. All rights reserved.</p>
-
-<p>The use and distribution terms for this software are covered by the
-Eclipse Public License 1.0 <a href="http://opensource.org/licenses/eclipse-1.0.php">1</a> which can be found in the file
-epl-v10.html at the root of this distribution.  By using this
-software in any fashion, you are agreeing to be bound by the terms
-of this license.</p>
-
-<p>You must not remove this notice, or any other, from this software.</p>
-</td><td class="codes" /><pre class="brush: clojure">(ns clj-peg.combinators)</pre></tr><tr><td class="docs"><p>A rule is a function [input bindings context memo]
+</td><td class="codes" /><pre class="brush: clojure">(ns clj-peg)</pre></tr><tr><td class="docs"><p>A rule is a function [input bindings context memo]
 -> {:i seq :b {symbol vec} :r value :s seqvalue :m memo}
 OR {:fail str :m memo} to signal failure
 input is a seq of the rest of the input
@@ -3090,5 +2856,158 @@ sequence.</p>
 (def match-number  (mkpr number?  ))
 (def match-string  (mkpr string?  ))
 (def match-symbol  (mkpr symbol?  ))
-(def match-vector  (mkpr vector?  ))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_clj-peg.examples">clj-peg.examples</li><li class="floating-toc-li" id="floating-toc_clj-peg.dsl">clj-peg.dsl</li><li class="floating-toc-li" id="floating-toc_clj-peg.combinators">clj-peg.combinators</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+(def match-vector  (mkpr vector?  ))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-peg.examples" name="clj-peg.examples"><h1 class="project-name">clj-peg.examples</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Eric Normand. All rights reserved.</p>
+
+<p>The use and distribution terms for this software are covered by the
+Eclipse Public License 1.0 <a href="http://opensource.org/licenses/eclipse-1.0.php">1</a> which can be found in the file
+epl-v10.html at the root of this distribution.  By using this
+software in any fashion, you are agreeing to be bound by the terms
+of this license.</p>
+
+<p>You must not remove this notice, or any other, from this software.</p>
+</td><td class="codes" /><pre class="brush: clojure">(ns clj-peg.examples
+  (:use clj-peg))</pre></tr><tr><td class="docs"><p>w** is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match 0 or more whitespace</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule  w**  {whitespace *})</pre></tr><tr><td class="docs"><p>w* is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match 0 or more whitespace but return nothing
+(effectively ignoring whitespace)</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule w* (mknothing (mkzom whitespace)))</pre></tr><tr><td class="docs"><p>newline is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match a newline</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule newline \newline)</pre></tr><tr><td class="docs"><p>non-newline is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match anything that is not a newline</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule non-newline [{! newline} anything])</pre></tr><tr><td class="docs"><p>clj-comment is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match clojure style single-line comments</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule clj-comment [\; {non-newline *} (or newline
+                                             end)])</pre></tr><tr><td class="docs"><p>integer is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match an integer and parse it
+this will only work if context contains :expected-type :string</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule integer {digit +} #{(fn [b c] (Integer/parseInt (:ret b)))})</pre></tr><tr><td class="docs"><p>plus is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match a + character</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule plus \+)</pre></tr><tr><td class="docs"><p>times is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match a * character</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule times \*)</pre></tr><tr><td class="docs"><p>open is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match an open paren</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule open \()</pre></tr><tr><td class="docs"><p>close is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match a close paren</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule close \))</pre></tr><tr><td class="docs"><p>using the above rules, we can define a simple calculator</p>
+</td><td class="codes" /></tr><tr><td class="docs"><p>we must declare our variables here because the rules are mutually recursive</p>
+</td><td class="codes" /><pre class="brush: clojure">(declare sum product term)</pre></tr><tr><td class="docs"><p>term is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>also, it is often necessary to use the var (with #') when using
+mutually or self-recursive rules
+note that because we use #' and we have predeclared, the rules can
+appear in any order</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule term
+  [open w* {:value sum} w* close] #{(fn [b c] (:value b))}
+  integer)</pre></tr><tr><td class="docs"><p>product is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule product
+  [{:a term} w* times w* {:b product}] #{(fn [b c] (* (:a b) (:b b)))}
+  term)</pre></tr><tr><td class="docs"><p>sum is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule sum
+  [{:a product} w* plus w* {:b sum}] #{(fn [b c] (+ (:a b) (:b b)))}
+  product)</pre></tr><tr><td class="docs"><p>calc is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>create a convenient function to call the rule with</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule calc sum)</pre></tr><tr><td class="docs"><p>try (calc "(2 +4) * 9")
+try (calc "2 + 4 * 9")</p>
+</td><td class="codes" /></tr><tr><td class="docs"><p>a future release will contain a dsl for defining the rules more conveniently</p>
+</td><td class="codes" /></tr><tr><td class="docs"><p>besides operating on strings, we can also operate on seqs
+we can define a math-expression optimizer</p>
+</td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(declare addition multiplication expr fncall args)</pre></tr><tr><td class="docs"><p>optimize is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule optimize expr)</pre></tr><tr><td class="docs"><p>expr is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>an expression is a (+) expr, a (*) expr, another fncall, a var, or
+a number</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule expr
+  (=&gt; addition)
+  (=&gt; multiplication)
+  (=&gt; fncall)
+  match-symbol
+  match-number)</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defn separate [pr coll]
+  [(filter pr coll)
+   (filter (complement pr) coll)])</pre></tr><tr><td class="docs"><p>addition is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>an addition expression is a + followed by arguments
+args will recursively optimize the arguments</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule addition [(mklit '+) {:args args}]
+                   ;;find the literal numbers
+  #{(fn [b c]
+      (let [[nums other] (separate number? (:args b))
+            sum (apply + nums)]
+        (cond
+         ;; if there are only numbers, we
+         ;; don't need to add at runtime
+         (nil? (seq other))
+         sum
+         ;; if the sum is zero and only one
+         ;; other term, we don't need to add
+         (and (zero? sum) (nil? (rest other)))
+         (first other)
+         ;; if the sum is zero, just add the
+         ;; other terms
+         (zero? sum)
+         `(+ ~@other)
+         ;; otherwise, return the addition
+         :otherwise 
+         `(+ ~sum ~@other))))})</pre></tr><tr><td class="docs"><p>multiplication is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule multiplication  [(mklit '*) {:args args}]
+  ;;find the literal numbers
+  #{(fn [b c]
+      (let [[nums other] (separate number? (:args b))
+            prod (apply * nums)]
+        (cond
+         ;; if there are only numbers, we
+         ;; don't need to multiply at runtime
+         (nil? (seq other))
+         prod
+         ;; if the prod is zero, we return 0
+         (zero? prod)
+         0
+         ;; if the prod is 1, we don't need
+         ;; it
+         (and (= 1 prod) (nil? (rest other)))
+         (first other)
+         (= 1 prod)
+         `(* ~@other)
+         ;; otherwise, return the addition
+         :otherwise 
+         `(* ~prod ~@other))))})</pre></tr><tr><td class="docs"><p>fncall is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule fncall
+  [{:sym match-symbol} {:args args}] #{(fn [b c]
+                                         `(~(:sym b) ~@(:args b)))})</pre></tr><tr><td class="docs"><p>args is a clj-peg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match all args up to the end</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule args [{expr *} end])</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_clj-peg">clj-peg</li><li class="floating-toc-li" id="floating-toc_clj-peg.examples">clj-peg.examples</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
        SyntaxHighlighter.all()</script></body></html>
