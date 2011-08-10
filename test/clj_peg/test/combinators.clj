@@ -55,38 +55,22 @@
   ;; mkpr succeeds when predicate succeeds
   (is (success? ((mkpr identity) [true] {} {} {}))))
 
-(deftest test-mkcat
-  ;; mkcat fails when first rule fails
-  (is (failure? ((mkcat never always) [] {} {} {})))
-  (is (failure? ((mkcat never never) [] {} {} {})))
-  ;; mkcat fails when first rule succeeds but second fails
-  (is (failure? ((mkcat always never) [] {} {} {})))
-  ;; mkcat succeeds when both rules succeed
-  (is (success? ((mkcat always always) [] {} {} {}))))
 
 (deftest test-mkseq
   ;; empty rules always succeeds
-  (is (success? ((mkseq []) [] {} {} {})))
+  (is (success? ((mkseq) [] {} {} {})))
   ;; if any fail, mkseq fails
-  (is (failure? ((mkseq [always always never]) [] {} {} {})))
+  (is (failure? ((mkseq always always never) [] {} {} {})))
   ;; if none fail, mkseq succeeds
-  (is (success? ((mkseq [always always always]) [] {} {} {}))))
-
-(deftest test-mkeither
-  ;; mkeither fails when both fail
-  (is (failure? ((mkeither never never) [] {} {} {})))
-  ;; mkeither succeeds in other cases
-  (is (success? ((mkeither always always) [] {} {} {})))
-  (is (success? ((mkeither never always) [] {} {} {})))
-  (is (success? ((mkeither always never) [] {} {} {}))))
+  (is (success? ((mkseq always always always) [] {} {} {}))))
 
 (deftest test-mkalt
   ;; empty rules always fails
-  (is (failure? ((mkalt []) [] {} {} {})))
+  (is (failure? ((mkalt) [] {} {} {})))
   ;; if none succeed, it fails
-  (is (failure? ((mkalt [never never never]) [] {} {} {})))
+  (is (failure? ((mkalt never never never) [] {} {} {})))
   ;; if one succeeds, it succeeds
-  (is (success? ((mkalt [never always never]) [] {} {} {}))))
+  (is (success? ((mkalt never always never) [] {} {} {}))))
 
 (deftest test-mkpred
   ;; mkpred fails when the predicate fails
@@ -206,3 +190,88 @@
   (is (= 2 (b [2])))
   (is (:doc (meta #'b)))
   (is (:arglists (meta #'b))))
+
+(deftest test-defrule-complex
+  (def h (mklit 4))
+  (defrule sym h)
+  (def h never)
+  (is (thrown? Exception (sym [4])))
+  (defrule r1 "abc")
+  (is (r1 "abc"))
+  (defrule r2 \a)
+  (is (r2 "a"))
+  (defrule r3 1)
+  (is (r3 [1]))
+  (defrule r4 1 2)
+  (is (r4 [1]))
+  (is (r4 [2]))
+  (is (thrown? Exception (r4 [4])))
+  (defrule r5 [1 2 3])
+  (is (r5 [1 2 3]))
+  (defrule r6
+    [1 2 3]
+    [3 2 1])
+  (is (r6 [1 2 3]))
+  (is (r6 [3 2 1]))
+  (is (thrown? Exception (r6 [1 3 2])))
+  (defrule r7 1 #{(fn [b c] 0)})
+  (is (= 0 (r7 [1])))
+  (is (thrown? RuntimeException (eval '(defrule r8 #{(fn [b c] 0)}))))
+  (defrule r9
+    "abc" #{(fn [b c] 0)}
+    "xyz" #{(fn [b c] 1)})
+  (is (= 0 (r9 "abc")))
+  (is (= 1 (r9 "xyz")))
+  (defrule r10
+    [{:a  match-char} "bc"] #{(fn [b c] (:a b))})
+  (is (= \a (r10 "abc")))
+  (is (= \b (r10 "bbc")))
+  (defrule r10a
+    [{:a [1 2]} 3 4] #{(fn [b c] (:a b))})
+  (is (= [1 2] (r10a [1 2 3 4])))
+  (defrule r11
+    {digit *})
+  (is (= "1234" (r11 "1234")))
+  (defrule r11a
+    {[digit] *})
+  (is (= "1234" (r11a "1234")))
+  (defrule r12
+    {digit +})
+  (is (thrown? Exception (r12 "")))
+  (is (= "678" (r12 "678")))
+  (defrule r12a
+    {[digit] +})
+  (is (thrown? Exception (r12a "")))
+  (is (= "678" (r12a "678")))
+  (defrule r13
+    {digit ?})
+  (is (= "" (r13 "")))
+  (is (= \1 (r13 "12")))
+  (defrule r13a
+    {[digit] ?})
+  (is (= "" (r13a "")))
+  (is (= \1 (r13a "12")))
+  (defrule r14
+    {! digit})
+  (is (= nil (r14 "a")))
+  (is (thrown? Exception (r14 "1")))
+  (defrule r14a
+    {! [digit]})
+  (is (= nil (r14a "a")))
+  (is (thrown? Exception (r14a "1")))
+  (defrule r15
+    [1 (or 2 3)])
+  (is (= [1 2] (r15 [1 2])))
+  (is (= [1 3] (r15 [1 3])))
+  (defrule r15a
+    [1 (or [2] 3)])
+  (is (= [1 2] (r15a [1 2])))
+  (is (= [1 3] (r15a [1 3])))
+  (defrule r16
+    [{:a match-integer} (? [b c] (even? (:a b)))])
+  (is (= 2 (r16 [2])))
+  (is (thrown? Exception (r16 [5])))
+  (defrule r17
+    [1 (or 2 #{(fn [b c] "l")}
+           3)])
+  )

@@ -9,7 +9,7 @@ This software was written by Eric Normand and is released under the
 
 [Eclipse Public License]: http://opensource.org/licenses/eclipse-1.0.php
 
-Special thanks also goes to [Christophe Grand][cgrand]
+Special thanks also goes to [Christophe Grand][cgrand] for his help.
 
 [cgrand]: http://clj-me.cgrand.net/
 

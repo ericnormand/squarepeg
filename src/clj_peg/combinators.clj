@@ -51,12 +51,12 @@
     ([input]
        (let [context (if (string? input)
                        {:expected-type :string}
-                       {})] 
+                       {})]
          (ff input context)))
     ([input context]
        (let [r (f input {} context {})]
          (if (success? r)
-           (:r r)
+           (coerce (:r r) (:expected-type context))
            (throw (RuntimeException. (:fail r))))))
     ([input bindings context memo]
        (f input bindings context memo))))
@@ -134,53 +134,45 @@ returns nothing."
    (let [val (vec-cat (:s r1) (:s r2))]
      [(coerce val (:expected-type context)) val])))
 
-(defn mkcat
-  "Create a rule that matches rule1 followed by rule2. Returns a vec
-of all return values."
-  [rule1 rule2]
-  (fn [input bindings context memo]
-    (let [r1 (rule1 input bindings context memo)]
-      (if (failure? r1)
-        r1
-        (let [r2 (rule2 (:i r1) (:b r1) context (:m r1))]
-          (if (failure? r2)
-            r2
-            (let [[r s] (catreturns r1 r2 context)]
-              (succeed r s (:i r2) (:b r2) (:m r2)))))))))
-
 (defn mkseq
   "Create a rule that matches all of rules in order. Returns a vec of
 the return values of each."
-  [rules]
-  (reduce mkcat #(succeed nil [] %1 %2 %4) rules))
-
-(defn mkeither
-  "Create a rule that tries to match rule1. If it succeeds, the rule
-succeeds. Otherwise, it calls rule2."
-  [rule1 rule2]
-  (fn [input bindings context memo]
-    (let [r1 (rule1 input bindings context memo)]
-      (if (failure? r1)
-        (rule2 input bindings context (:m r1))
-        r1))))
+  ([]
+     #(succeed nil [] %1 %2 %4))
+  ([rule]
+     rule)
+  ([rule1 rule2]
+     (fn [input bindings context memo]
+       (let [r1 (rule1 input bindings context memo)]
+         (if (failure? r1)
+           r1
+           (let [r2 (rule2 (:i r1) (:b r1) context (:m r1))]
+             (if (failure? r2)
+               r2
+               (let [[r s] (catreturns r1 r2 context)]
+                 (succeed r s (:i r2) (:b r2) (:m r2)))))))))
+  ([rule1 rule2 & rules]
+     (reduce mkseq  (cons rule1 (cons rule2 rules)))))
 
 (defn mkalt
   "Create a rule which succeeds if one of rules succeeds."
-  [rules]
-  (cond
-   (nil? (seq rules))
-   #(fail "no rules to match" %4)
-
-   (nil? (next rules))
-   (first rules)
-
-   :otherwise
-   (reduce mkeither rules)))
+  ([]
+     #(fail "no rules to match" %4))
+  ([rule]
+     rule)
+  ([rule1 rule2]
+     (fn [input bindings context memo]
+       (let [r1 (rule1 input bindings context memo)]
+         (if (failure? r1)
+           (rule2 input bindings context (:m r1))
+           r1))))
+  ([rule1 rule2 & rules]
+     (reduce mkalt (cons rule1 (cons rule2 rules)))))
 
 (defn mkpred
   "Create a rule which never returns a value or consumes input. It
 succeeds if f returns non-nil and fails otherwise. f is a function of
-input bindings and context."
+bindings and context."
   [f]
   (fn [input bindings context memo]
     (if (f bindings context)
@@ -224,7 +216,7 @@ input."
   "Create a rule which matches rule as many times as possible but at
 least once."
   [rule]
-  (mkseq [rule (mkzom rule)]))
+  (mkseq rule (mkzom rule)))
 
 (defn mkopt
   "Create a rule which matches rule or not, but never fails."
@@ -246,7 +238,7 @@ l, succeed."
   "Create a rule which matches all of the characters of a String s in
 sequence."
   [s]
-  (mkseq (map mklit s)))
+  (apply mkseq (map mklit s)))
 
 (defn mkmemo
   "Create a rule that memoizes the given rule."
@@ -289,14 +281,62 @@ sequence."
 
 ;; utilities
 
+(defn- transbody
+  ([]
+     (mkalt))
+  ([a]
+     (cond
+      (and (list? a)
+           (= 'or (first a)))
+      (apply transbody (rest a))
+      (and (list? a)
+           (= '? (first a)))
+      `(mkpred (fn ~@(rest a)))
+      (and (map? a)
+           (keyword? (first (keys a))))
+      `(mkbind ~(transbody (first (vals a))) ~(first (keys a)))
+      (and (map? a)
+           (= '! (first (keys a))))
+      `(mknot ~(transbody (first (vals a))))
+      (and (map? a)
+           (= '* (first (vals a))))
+      `(mkzom ~(transbody (first (keys a))))
+      (and (map? a)
+           (= '+ (first (vals a))))
+      `(mk1om ~(transbody (first (keys a))))      
+      (and (map? a)
+           (= '? (first (vals a))))
+      `(mkopt ~(transbody (first (keys a))))      
+      (set? a)
+      (throw (RuntimeException. "Set (return function) can't be first."))
+      (symbol? a)
+      `(fn [i# b# c# m#]
+         (~a i# b# c# m#))
+      (string? a)
+      `(mkstr ~a)
+      (or (char? a)
+          (number? a))
+      `(mklit ~a)
+      (vector? a)
+      `(mkseq ~@(map transbody a))
+      :otherwise
+      a))
+  ([a b & cs]
+     (cond
+      (set? b)
+      `(mkalt (mkret ~(transbody a) ~(first b))
+              ~(apply transbody cs))
+      :otherwise
+      `(mkalt ~(transbody a) ~(apply transbody (cons b cs))))))
+
 (defmacro defrule
-  ([name body]
+  ([name & body]
      (list 'def
            (with-meta name
              {:arglists ''([input] [input context] [input bindings context memo])
               :doc (str name " is a clj-peg parser rule. Call with a seq of input or
         use it as a rule (4 arguments).")})
-           `(mkfn ~body))))
+           `(mkfn (mkscope (mkmemo ~(apply transbody body)))))))
 
 (def always (mkpred (constantly true)))
 (def never  (mkpred (constantly false)))
