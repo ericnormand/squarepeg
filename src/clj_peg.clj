@@ -9,7 +9,7 @@
 ;; [1]: http://opensource.org/licenses/eclipse-1.0.php
 ;;
 ;; You must not remove this notice, or any other, from this software.
-(ns clj-peg.combinators)
+(ns clj-peg)
 
 ;; A rule is a function [input bindings context memo]
 ;; -> {:i seq :b {symbol vec} :r value :s seqvalue :m memo}

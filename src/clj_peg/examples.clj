@@ -10,7 +10,7 @@
 ;;
 ;; You must not remove this notice, or any other, from this software.
 (ns clj-peg.examples
-  (:use clj-peg.combinators))
+  (:use clj-peg))
 
 ;; match 0 or more whitespace
 (defrule  w**  {whitespace *})

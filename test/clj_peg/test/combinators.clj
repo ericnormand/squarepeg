@@ -11,7 +11,7 @@
 ;; You must not remove this notice, or any other, from this software.
 (ns clj-peg.test.combinators
   (:use clojure.test)
-  (:use clj-peg.combinators))
+  (:use clj-peg))
 
 (deftest test-mknot
   (is (failure? ((mknot always) []  {} {} {})) "mknot always always fails")
