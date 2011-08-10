@@ -32,7 +32,7 @@ declaration:
     git clone git@github.com:ericnormand/clj-peg.git
     cd clj-peg
     lein deps
-    lein test    # run the tests
+    lein test
 
 ## Introduction
 
