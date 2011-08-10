@@ -84,9 +84,9 @@
 ;; an expression is a (+) expr, a (*) expr, another fncall, a var, or
 ;; a number
 (defrule expr
-  (mksub #'addition)
-  (mksub #'multiplication)
-  (mksub #'fncall)
+  (=> addition)
+  (=> multiplication)
+  (=> fncall)
   match-symbol
   match-number)
 
@@ -96,7 +96,7 @@
 
 ;; an addition expression is a + followed by arguments
 ;; args will recursively optimize the arguments
-(defrule addition [+ {:args args}]
+(defrule addition [(mklit '+) {:args args}]
                    ;;find the literal numbers
   #{(fn [b c]
       (let [[nums other] (separate number? (:args b))
@@ -118,7 +118,7 @@
          :otherwise 
          `(+ ~sum ~@other))))})
 
-(defrule multiplication  [* {:args args}]
+(defrule multiplication  [(mklit '*) {:args args}]
   ;;find the literal numbers
   #{(fn [b c]
       (let [[nums other] (separate number? (:args b))

@@ -287,6 +287,9 @@ sequence."
   ([a]
      (cond
       (and (list? a)
+           (= '=> (first a)))
+      `(mksub ~(apply transbody (rest a)))
+      (and (list? a)
            (= 'or (first a)))
       (apply transbody (rest a))
       (and (list? a)
@@ -298,6 +301,12 @@ sequence."
       (and (map? a)
            (= '! (first (keys a))))
       `(mknot ~(transbody (first (vals a))))
+      (and (map? a)
+           (= '% (first (keys a))))
+      `(mknothing ~(transbody (first (vals a))))
+      (and (map? a)
+           (= '? (first (keys a))))
+      `(mkpr ~(first (vals a)))
       (and (map? a)
            (= '* (first (vals a))))
       `(mkzom ~(transbody (first (keys a))))

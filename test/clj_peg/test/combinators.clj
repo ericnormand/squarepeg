@@ -274,4 +274,18 @@
   (defrule r17
     [1 (or 2 #{(fn [b c] "l")}
            3)])
+  (defrule r18
+    (=> r15))
+  (is (= [1 2] (r18 [[1 2]])))
+  (defrule r19
+    (=> [1 2 3]))
+  (is (= [1 2 3] (r19 [[1 2 3]])))
+  (defrule r20
+    {% {whitespace *}})
+  (is (nil? (r20 "")))
+  (is (nil? (r20 "    ")))
+  (defrule r21
+    {? number?})
+  (is (= 5 (r21 [5])))
+  (is (thrown? Exception (r21 [\5])))
   )
