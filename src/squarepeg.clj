@@ -258,7 +258,9 @@ sequence."
                             :miss (inc ((:m r) :miss 0)))))))
         (rule input bindings context memo)))))
 
-(defn- unhead [l tl]
+(defn- unhead
+  "Given a list and a tail of that list, return the head."
+  [l tl]
   (cond
    (nil? (seq l))
    nil
@@ -281,9 +283,29 @@ sequence."
                  (:s r)
                  (:i r)
                  (assoc (:b r)
-                   :match (conj (:match (:b r))
-                                (coerce (unhead before after) (:expected-type context))))
+                   :match (coerce (unhead before after) (:expected-type context)))
                  (:m r))))))
+
+(defn mklower
+  "Make a rule that transforms the input to lowercase. This is helpful
+  for creating a rule that is case insensitive. Rules executed after
+  this rule will see the original input."
+  [rule]
+  (fn [input bindings context memo]
+    (let [ci (map #(if (char? %)
+                     (Character/toLowerCase %)
+                     %) input)
+          r (rule ci bindings context memo)
+          after (:i r)]
+      (if (failure? r)
+        r
+        (let [ri (unhead ci after)
+              newinput (drop (count ri) input)]
+         (succeed (:r r)
+                  (:s r)
+                  newinput
+                  (:b r)
+                  (:m r)))))))
 
 ;; utilities
 
@@ -310,6 +332,9 @@ sequence."
       (and (map? a)
            (= '% (first (keys a))))
       `(mknothing ~(transbody (first (vals a))))
+      (and (map? a)
+           (= '$ (first (keys a))))
+      `(mkmatch ~(transbody (first (vals a))))
       (and (map? a)
            (= '? (first (keys a))))
       `(mkpr ~(first (vals a)))

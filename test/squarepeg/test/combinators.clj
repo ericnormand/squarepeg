@@ -9,9 +9,9 @@
 ;; [1]: http://opensource.org/licenses/eclipse-1.0.php
 ;;
 ;; You must not remove this notice, or any other, from this software.
-(ns clj-peg.test.combinators
+(ns squarepeg.test.combinators
   (:use clojure.test)
-  (:use clj-peg))
+  (:use squarepeg))
 
 (deftest test-mknot
   (is (failure? ((mknot always) []  {} {} {})) "mknot always always fails")
@@ -182,6 +182,13 @@
   (let [r ((mkmatch anything) "abc" {} {:expected-type :string} {})]
     (is (= "a" (:match (:b r)))))
   )
+
+(deftest test-mklower
+  (is (= (seq "ABC") (:i ((mklower (mkstr "xyz")) "XYZABC" {} {} {}))))
+  (is (= (seq "ABC") (:i ((mklower (mkstr "xyz")) "xyzABC" {} {} {}))))
+  (is (failure? ((mklower (mkstr "xyz1")) "XYZABC" {} {} {})))
+  (is (failure? ((mklower (mkstr "xyzA")) "XYZABC" {} {} {})))
+  (is (= (seq "ABC") (:i ((mkseq (mkstr "123") (mklower (mkstr "xyz"))) "123XYZABC" {} {} {})))))
 
 (deftest test-defrule
   (defrule b (mkpr even?))
