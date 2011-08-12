@@ -47,7 +47,13 @@ course input Java Strings. But they can also input any seq. This means
 you can apply a grammar to a sequence of Integers, for example.
 
 You may want to jump right in to the examples in
-src/clj_peg/examples.clj
+src/squarepeg/examples.clj
+
+There is also a small example of how to use squarepeg to compile a
+class file for use with Java.
+
+NOTE: squarepeg used to be called clj-peg! But then I realized the
+name was taken. Now I have a name without a hyphen.
 
 ##How it works
 
@@ -130,7 +136,7 @@ Combinators are functions that generate rules.
 
 ####Built-in combinators
 
-Combinators are defined in src/clj_peg/combinators.clj
+Combinators are defined in src/squarepeg/combinators.clj
 
 <code>mknot</code> inverts a rule. Given a rule, mknot returns a new
 rule that fails when the given rule succeeds, and vice versa. It never
