@@ -9,8 +9,8 @@
 ;; [1]: http://opensource.org/licenses/eclipse-1.0.php
 ;;
 ;; You must not remove this notice, or any other, from this software.
-(defproject clj-peg "0.6.0"
-  :description "clj-peg is a PEG parser written in Clojure.  It can
+(defproject squarepeg "0.6.0"
+  :description "squarepeg is a PEG parser written in Clojure.  It can
   parse any sequence of data types, including lists and vectors."
   
   :dependencies     [[org.clojure/clojure  "[1.2.0,)"]]
@@ -19,4 +19,4 @@
                      [swank-clojure        "[1.2.0,)"]
                      [lein-marginalia      "0.6.0"]]
 
-  :aot [clj-peg.example-genclass])
+  :aot [squarepeg.example-genclass])

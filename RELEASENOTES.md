@@ -8,9 +8,9 @@ share.
 Mainly, this involved reorganizing the namespace, paring down the
 combinators, and creating a macro for helping to define new rules.
 
-The namespace is now flatter. You <code>(use 'clj-peg)</code> instead
-of <code>(use 'clj-peg.combinators)</code> like it used to be. There
-is still <code>clj-peg.examples</code> but you should rarely have to
+The namespace is now flatter. You <code>(use squarepeg)</code> instead
+of <code>(use 'squarepeg.combinators)</code> like it used to be. There
+is still <code>squarepeg.examples</code> but you should rarely have to
 import that.
 
 The binary sequence and alternation combinators (<code>mkcat</code>
@@ -79,7 +79,7 @@ bindings argument.
 
 Memoizing trades space efficiency for computational
 efficiency. Typically, PEG parsers use memoizing to provide infinite
-lookahead in O(n) time. Currently, clj-peg does not memoize the
+lookahead in O(n) time. Currently, squarepeg does not memoize the
 results of rules. For long inputs, it could perform very poorly
 time-wise. Memoizing should fix that.
 
@@ -116,7 +116,7 @@ planning for 0.3.0 for an idea.
 Some things in this release:
 
 * docstrings for all functions.
-* examples to learn from (src/clj_peg/examples.clj)
+* examples to learn from (src/squarepeg/examples.clj)
 * making utility functions not exported
 
 ## Prior to 0.1.0

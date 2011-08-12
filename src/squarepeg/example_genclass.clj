@@ -1,5 +1,5 @@
-(ns clj-peg.example-genclass
-  (:use clj-peg)
+(ns squarepeg.example-genclass
+  (:use squarepeg)
   (:gen-class
    :name parsezero))
 

@@ -9,11 +9,10 @@
 ;; [1]: http://opensource.org/licenses/eclipse-1.0.php
 ;;
 ;; You must not remove this notice, or any other, from this software.
-(ns clj-peg.examples
-  (:use clj-peg))
+(ns squarepeg.examples
+  (:use squarepeg))
 
 ;; match 0 or more whitespace
-
 
 (defrule  w**  {whitespace *})
 

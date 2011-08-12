@@ -1,11 +1,11 @@
-#clj-peg
+#squarepeg
 
 ## Credits and Acknowledgements
 
 This software was written by Eric Normand and is released under the
 [Eclipse Public License]. You can [find it on github][github].
 
-[github]: http://github.com/ericnormand/clj-peg
+[github]: http://github.com/ericnormand/squarepeg
 
 [Eclipse Public License]: http://opensource.org/licenses/eclipse-1.0.php
 
@@ -17,7 +17,7 @@ Special thanks also goes to [Christophe Grand][cgrand] for his help.
 
 ### To use in your project.
 
-Add <code>[clj-peg "0.5.0"]</code> to your project's dependencies then
+Add <code>[squarepeg "0.6.0"]</code> to your project's dependencies then
 run.
 
     lein deps
@@ -25,24 +25,24 @@ run.
 In the relevant code, add the following to you <code>ns</code>
 declaration:
 
-    (:use clj-peg)
+    (:use squarepeg)
 
 ### To hack the code
 
-    git clone git@github.com:ericnormand/clj-peg.git
-    cd clj-peg
+    git clone git@github.com:ericnormand/squarepeg.git
+    cd squarepeg
     lein deps
     lein test
 
 ## Introduction
 
-clj-peg is a library for defining PEGs. PEG stands for Parsing
+squarepeg is a library for defining PEGs. PEG stands for Parsing
 Expression Grammar.
 
 The library defines a set of parser combinators for creating grammar
 rules.
 
-Parsers created with clj-peg are data-structure agnostic. They can of
+Parsers created with squarepeg are data-structure agnostic. They can of
 course input Java Strings. But they can also input any seq. This means
 you can apply a grammar to a sequence of Integers, for example.
 
@@ -51,7 +51,7 @@ src/clj_peg/examples.clj
 
 ##How it works
 
-clj-peg is defined in terms of combinators. Each combinator is a
+squarepeg is defined in terms of combinators. Each combinator is a
 function which generates an atomic unit of a parser (called a
 _rule_). By combining these parts (with combinators! ;-), you can
 generate complex parsers that can handle a superset of Context Free

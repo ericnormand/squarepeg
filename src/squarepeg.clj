@@ -9,7 +9,7 @@
 ;; [1]: http://opensource.org/licenses/eclipse-1.0.php
 ;;
 ;; You must not remove this notice, or any other, from this software.
-(ns clj-peg)
+(ns squarepeg)
 
 ;; A rule is a function [input bindings context memo]
 ;; -> {:i seq :b {symbol vec} :r value :s seqvalue :m memo}
@@ -361,7 +361,7 @@ sequence."
      (list 'def
            (with-meta name
              {:arglists ''([input] [input context] [input bindings context memo])
-              :doc (str name " is a clj-peg parser rule. Call with a seq of input or
+              :doc (str name " is a squarepeg parser rule. Call with a seq of input or
         use it as a rule (4 arguments).")})
            `(mkfn (mkscope (mkmemo ~(apply transbody body)))))))
 
