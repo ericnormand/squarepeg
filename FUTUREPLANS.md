@@ -1,11 +1,5 @@
 ## Future History (planning)
 
-### 0.6.0
-
-I would like to explore generating parser classes for use by Java and
-other JVM languages. This shouldn't be too much trouble. Rules are
-just functions.
-
 ### 0.7.0
 
 I want to dedicate a release just to documentation. One of my goals is

@@ -1,5 +1,10 @@
 # History
 
+### 0.6.0
+
+Generating classes that work in Java was easier than I thought. I have
+created a simplistic example in squarepeg.example-genclass.
+
 ### 0.5.0
 
 This release will mainly be work to make parsers simpler to define and
