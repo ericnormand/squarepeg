@@ -223,6 +223,13 @@
   (is (thrown? Exception (r6 [1 3 2])))
   (defrule r7 1 #{(fn [b c] 0)})
   (is (= 0 (r7 [1])))
+  ;; this test worked in clojure 1.3, but not in clojure 1.2
+  ;; it is meant to test that defrule cannot take a #{} as the first
+  ;;param
+  ;; I believe it is failing because of symbol lookup rules being
+  ;; different
+  ;; the eval does not work anymore
+  ;(is (thrown? Exception (eval '(defrule r8 #{(fn [b c] 0)}))))
   (defrule r9
     "abc" #{(fn [b c] 0)}
     "xyz" #{(fn [b c] 1)})
