@@ -9,14 +9,14 @@
 ;; [1]: http://opensource.org/licenses/eclipse-1.0.php
 ;;
 ;; You must not remove this notice, or any other, from this software.
+
 (defproject squarepeg "0.6.0"
   :description "squarepeg is a PEG parser written in Clojure.  It can
   parse any sequence of data types, including lists and vectors."
   
-  :dependencies     [[org.clojure/clojure  "[1.2.1]"]]
+  :dependencies     [[org.clojure/clojure  "1.2.1"]]
   
-  :dev-dependencies [[leiningen/lein-swank "[1.1.0,)"]
-                     [swank-clojure        "[1.2.0,)"]
+  :dev-dependencies [[swank-clojure        "1.3.2"]
                      [lein-marginalia      "0.6.0"]]
 
   :aot [squarepeg.example-genclass])

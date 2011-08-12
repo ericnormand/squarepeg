@@ -223,7 +223,6 @@
   (is (thrown? Exception (r6 [1 3 2])))
   (defrule r7 1 #{(fn [b c] 0)})
   (is (= 0 (r7 [1])))
-  (is (thrown? RuntimeException (eval '(defrule r8 #{(fn [b c] 0)}))))
   (defrule r9
     "abc" #{(fn [b c] 0)}
     "xyz" #{(fn [b c] 1)})
