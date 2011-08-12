@@ -277,7 +277,13 @@ sequence."
           after (:i r)]
       (if (failure? r)
         r
-        (succeed (:r r) (:s r) (:i r) (assoc (:b r) :match (coerce (unhead before after) (:expected-type context))) (:m r))))))
+        (succeed (:r r)
+                 (:s r)
+                 (:i r)
+                 (assoc (:b r)
+                   :match (conj (:match (:b r))
+                                (coerce (unhead before after) (:expected-type context))))
+                 (:m r))))))
 
 ;; utilities
 
