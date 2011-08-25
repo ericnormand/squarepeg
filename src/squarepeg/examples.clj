@@ -76,6 +76,8 @@
 
 (declare addition multiplication expr fncall args)
 
+;;  call it like this:
+;; (optimize '[(+ 1 (* 2 3) a)]) => '(+ 7 a)
 (defrule optimize expr)
 
 ;; an expression is a (+) expr, a (*) expr, another fncall, a var, or
