@@ -25,7 +25,7 @@ run.
 In the relevant code, add the following to you <code>ns</code>
 declaration:
 
-    (:use squarepeg)
+    (:use squarepeg.core)
 
 ### To hack the code
 

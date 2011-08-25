@@ -10,7 +10,7 @@
 ;;
 ;; You must not remove this notice, or any other, from this software.
 (ns squarepeg.examples
-  (:use squarepeg))
+  (:use squarepeg.core))
 
 ;; match 0 or more whitespace
 

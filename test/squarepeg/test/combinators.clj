@@ -11,7 +11,7 @@
 ;; You must not remove this notice, or any other, from this software.
 (ns squarepeg.test.combinators
   (:use clojure.test)
-  (:use squarepeg))
+  (:use squarepeg.core))
 
 (deftest test-mknot
   (is (failure? ((mknot always) []  {} {} {})) "mknot always always fails")

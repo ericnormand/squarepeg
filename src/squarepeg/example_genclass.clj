@@ -1,5 +1,5 @@
 (ns squarepeg.example-genclass
-  (:use squarepeg)
+  (:use squarepeg.core)
   (:gen-class
    :name parsezero))
 
