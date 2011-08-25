@@ -31,7 +31,9 @@
                                              end)])
 
 ;; match an integer and parse it
+;; :ret is bound to the entire match's return value
 ;; this will only work if context contains :expected-type :string
+;; which happens when you start with a string
 (defrule integer {digit +} #{(fn [b c] (Integer/parseInt (:ret b)))})
 
 ;; match a + character
@@ -51,14 +53,6 @@
 ;; we must declare our variables here because the rules are mutually recursive
 (declare sum product term)
 
-;; also, it is often necessary to use the var (with #') when using
-;; mutually or self-recursive rules
-;; note that because we use #' and we have predeclared, the rules can
-;; appear in any order
-(defrule term
-  [open w* {:value sum} w* close] #{(fn [b c] (:value b))}
-  integer)
-
 (defrule product
   [{:a term} w* times w* {:b product}] #{(fn [b c] (* (:a b) (:b b)))}
   term)
@@ -67,13 +61,15 @@
   [{:a product} w* plus w* {:b sum}] #{(fn [b c] (+ (:a b) (:b b)))}
   product)
 
+(defrule term
+  [open w* {:value sum} w* close] #{(fn [b c] (:value b))}
+  integer)
+
 ;; create a convenient function to call the rule with
 (defrule calc sum)
 
 ;; try (calc "(2 +4) * 9")
 ;; try (calc "2 + 4 * 9")
-
-;; a future release will contain a dsl for defining the rules more conveniently
 
 ;; besides operating on strings, we can also operate on seqs
 ;; we can define a math-expression optimizer
@@ -84,6 +80,7 @@
 
 ;; an expression is a (+) expr, a (*) expr, another fncall, a var, or
 ;; a number
+;; => defines a subrule (matching on a seq within a seq)
 (defrule expr
   (=> addition)
   (=> multiplication)
