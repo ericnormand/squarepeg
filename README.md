@@ -63,6 +63,11 @@ _rule_). By combining these parts (with combinators! ;-), you can
 generate complex parsers that can handle a superset of Context Free
 Grammars.
 
+Note that the combinators are not monadic! I tried monadic combinators
+but they didn't seem like a good fit for Clojure, which does not have
+built-in support for Monads, like Haskell does. If you want to find a
+monadic combinator library, there are plenty around.
+
 First, we'll go over some basic concepts.
 
 ###Rules
@@ -102,10 +107,10 @@ vec.
 assoc their results to this map. Please see <code>mkmemo</code> for an
 example.
 
-The function <code>success?</code> determines if an rule was
+The function <code>success?</code> determines if a rule was
 successful.
 
-####A little more detail on return values
+#### A little more detail on return values
 
 Most rules return a single value, let's call it a. This means you set
 :r to a and :s to [a].
@@ -123,7 +128,10 @@ have the parser consider it to be a single value, you would set :r to
 :s is primarily used by the mkseq combinator to collect return values
 of its subrules.
 
-###Failure
+The rule is simple: if the :r element is equal to the :s element, we
+are dealing with a seq of values, not a single value.
+
+### Failure
 
 Failure is a map with two values, :fail and :m, which are mapped to
 the failure message and the memo object, respectively.

@@ -2527,9 +2527,9 @@ $(document).ready(function() {
     ul.css('margin-top', '0px')
 
 })
-</script><title>squarepeg -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">squarepeg</h1><h2 class="project-version">0.6.0</h2><br /><p>squarepeg is a PEG parser written in Clojure.  It can
+</script><title>squarepeg -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">squarepeg</h1><h2 class="project-version">0.6.1</h2><br /><p>squarepeg is a PEG parser written in Clojure.  It can
   parse any sequence of data types, including lists and vectors.</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.1</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">lein-marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.6.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#squarepeg">squarepeg</a></li><li><a href="#squarepeg.examples">squarepeg.examples</a></li><li><a href="#squarepeg.example-genclass">squarepeg.example-genclass</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#squarepeg" name="squarepeg"><h1 class="project-name">squarepeg</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Eric Normand. All rights reserved.</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.1</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.2</td></tr><tr><td class="dep-name">lein-marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.6.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#squarepeg.core">squarepeg.core</a></li><li><a href="#squarepeg.examples">squarepeg.examples</a></li><li><a href="#squarepeg.example-genclass">squarepeg.example-genclass</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#squarepeg.core" name="squarepeg.core"><h1 class="project-name">squarepeg.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Eric Normand. All rights reserved.</p>
 
 <p>The use and distribution terms for this software are covered by the
 Eclipse Public License 1.0 <a href="http://opensource.org/licenses/eclipse-1.0.php">1</a> which can be found in the file
@@ -2538,7 +2538,7 @@ software in any fashion, you are agreeing to be bound by the terms
 of this license.</p>
 
 <p>You must not remove this notice, or any other, from this software.</p>
-</td><td class="codes" /><pre class="brush: clojure">(ns squarepeg)</pre></tr><tr><td class="docs"><p>A rule is a function [input bindings context memo]
+</td><td class="codes" /><pre class="brush: clojure">(ns squarepeg.core)</pre></tr><tr><td class="docs"><p>A rule is a function [input bindings context memo]
 -> {:i seq :b {symbol vec} :r value :s seqvalue :m memo}
 OR {:fail str :m memo} to signal failure
 input is a seq of the rest of the input
@@ -2547,14 +2547,10 @@ context is a map from keyword to value (immutable)
 memo is the memoization hash
 :fail is a failure message for the user</p>
 </td><td class="codes" /></tr><tr><td class="docs"><p>Fail a rule call with the given msg</p>
-
-<p>define success and failure</p>
-
-<p>Is x a failure?</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn fail
   [msg memo]
-  {:fail msg :m memo})
-(defn failure?
+  {:fail msg :m memo})</pre></tr><tr><td class="docs"><p>Is x a failure?</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn failure?
   [x]
   (:fail x))</pre></tr><tr><td class="docs"><p>Succeed a rule call.</p>
 
@@ -2627,7 +2623,7 @@ returns nothing.</p>
     (let [r (rule input bindings context memo)]
       (if (success? r)
         (succeed nil [] (:i r) (:b r) (:m r))
-        r))))</pre></tr><tr><td class="docs"><p>helper function to concatenate vecs</p>
+        r))))</pre></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(defn- vec-cat [a b]
   (reduce conj a b))</pre></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(defn- noreturn? [r]
@@ -2658,7 +2654,7 @@ the return values of each.</p>
                (let [[r s] (catreturns r1 r2 context)]
                  (succeed r s (:i r2) (:b r2) (:m r2)))))))))
   ([rule1 rule2 &amp; rules]
-     (reduce mkseq  (cons rule1 (cons rule2 rules)))))</pre></tr><tr><td class="docs"><p>Create a rule which succeeds if one of rules succeeds.</p>
+     (reduce mkseq (mkseq rule1 rule2) rules)))</pre></tr><tr><td class="docs"><p>Create a rule which succeeds if one of rules succeeds.</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkalt
   ([]
      #(fail &quot;no rules to match&quot; %4))
@@ -2671,7 +2667,7 @@ the return values of each.</p>
            (rule2 input bindings context (:m r1))
            r1))))
   ([rule1 rule2 &amp; rules]
-     (reduce mkalt (cons rule1 (cons rule2 rules)))))</pre></tr><tr><td class="docs"><p>Create a rule which never returns a value or consumes input. It
+     (reduce mkalt (mkalt rule1 rule2) rules)))</pre></tr><tr><td class="docs"><p>Create a rule which never returns a value or consumes input. It
 succeeds if f returns non-nil and fails otherwise. f is a function of
 bindings and context.</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkpred
@@ -2719,8 +2715,6 @@ least once.</p>
         (succeed [] [] input bindings (:m r))
         r))))</pre></tr><tr><td class="docs"><p>Create a rule which consumes one item of input. If it is equal to
 l, succeed.</p>
-
-<p>literal matcher</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn mklit
   [l]
   (mkpr #(= l %)))</pre></tr><tr><td class="docs"><p>Create a rule which matches all of the characters of a String s in
@@ -2736,7 +2730,7 @@ sequence.</p>
         (let [key [memoid input bindings]
               mv (memo key)]
           (when (:print-hits context)
-            (println &quot;hits: &quot;(:hit memo) &quot; miss: &quot; (:miss memo)))
+            (println &quot;hits: &quot; (:hit memo) &quot; miss: &quot; (:miss memo)))
           (if mv
             (assoc mv :m (assoc memo :hit (inc (memo :hit 0))))
             (let [r (rule input bindings context memo)]
@@ -2866,25 +2860,69 @@ sequence.</p>
              {:arglists ''([input] [input context] [input bindings context memo])
               :doc (str name &quot; is a squarepeg parser rule. Call with a seq of input or
         use it as a rule (4 arguments).&quot;)})
-           `(mkfn (mkscope (mkmemo ~(apply transbody body)))))))</pre></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(def always (mkpred (constantly true)))
-(def never  (mkpred (constantly false)))
-(def anything (mkpr (constantly true)))</pre></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(def whitespace (mkpr #(Character/isSpace %)))</pre></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(def digit (mkpr #(Character/isDigit %)))
-(def alpha (mkpr #(Character/isLetter %)))
-(def alphanum (mkpr #(Character/isLetterOrDigit %)))</pre></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(def end (mknot anything))</pre></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(def match-char    (mkpr char?    ))
-(def match-float   (mkpr float?   ))
-(def match-hash    (mkpr map?     ))
-(def match-integer (mkpr integer? ))
-(def match-keyword (mkpr keyword? ))
-(def match-list    (mkpr list?    ))
-(def match-number  (mkpr number?  ))
-(def match-string  (mkpr string?  ))
-(def match-symbol  (mkpr symbol?  ))
-(def match-vector  (mkpr vector?  ))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#squarepeg.examples" name="squarepeg.examples"><h1 class="project-name">squarepeg.examples</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Eric Normand. All rights reserved.</p>
+           `(mkfn (mkscope (mkmemo ~(apply transbody body)))))))</pre></tr><tr><td class="docs"><p>always is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>never is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>anything is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule always (mkpred (constantly true)))
+(defrule never  (mkpred (constantly false)))
+(defrule anything (mkpr (constantly true)))</pre></tr><tr><td class="docs"><p>whitespace is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule whitespace (mkpr #(Character/isSpace %)))</pre></tr><tr><td class="docs"><p>digit is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>alpha is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>alphanum is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule digit (mkpr #(Character/isDigit %)))
+(defrule alpha (mkpr #(Character/isLetter %)))
+(defrule alphanum (mkpr #(Character/isLetterOrDigit %)))</pre></tr><tr><td class="docs"><p>end is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule end (mknot anything))</pre></tr><tr><td class="docs"><p>match-char is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match-float is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match-hash is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match-integer is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match-keyword is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match-list is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match-number is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match-string is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match-symbol is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+
+<p>match-vector is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule match-char    (mkpr char?    ))
+(defrule match-float   (mkpr float?   ))
+(defrule match-hash    (mkpr map?     ))
+(defrule match-integer (mkpr integer? ))
+(defrule match-keyword (mkpr keyword? ))
+(defrule match-list    (mkpr list?    ))
+(defrule match-number  (mkpr number?  ))
+(defrule match-string  (mkpr string?  ))
+(defrule match-symbol  (mkpr symbol?  ))
+(defrule match-vector  (mkpr vector?  ))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#squarepeg.examples" name="squarepeg.examples"><h1 class="project-name">squarepeg.examples</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Eric Normand. All rights reserved.</p>
 
 <p>The use and distribution terms for this software are covered by the
 Eclipse Public License 1.0 <a href="http://opensource.org/licenses/eclipse-1.0.php">1</a> which can be found in the file
@@ -2894,7 +2932,7 @@ of this license.</p>
 
 <p>You must not remove this notice, or any other, from this software.</p>
 </td><td class="codes" /><pre class="brush: clojure">(ns squarepeg.examples
-  (:use squarepeg))</pre></tr><tr><td class="docs"><p>match 0 or more whitespace</p>
+  (:use squarepeg.core))</pre></tr><tr><td class="docs"><p>match 0 or more whitespace</p>
 </td><td class="codes" /></tr><tr><td class="docs"><p>w** is a squarepeg parser rule. Call with a seq of input or
         use it as a rule (4 arguments).</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule  w**  {whitespace *})</pre></tr><tr><td class="docs"><p>w* is a squarepeg parser rule. Call with a seq of input or
@@ -2919,7 +2957,9 @@ of this license.</p>
         use it as a rule (4 arguments).</p>
 
 <p>match an integer and parse it
-this will only work if context contains :expected-type :string</p>
+:ret is bound to the entire match's return value
+this will only work if context contains :expected-type :string
+which happens when you start with a string</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule integer {digit +} #{(fn [b c] (Integer/parseInt (:ret b)))})</pre></tr><tr><td class="docs"><p>plus is a squarepeg parser rule. Call with a seq of input or
         use it as a rule (4 arguments).</p>
 
@@ -2938,16 +2978,7 @@ this will only work if context contains :expected-type :string</p>
 <p>match a close paren</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule close \))</pre></tr><tr><td class="docs"><p>using the above rules, we can define a simple calculator</p>
 </td><td class="codes" /></tr><tr><td class="docs"><p>we must declare our variables here because the rules are mutually recursive</p>
-</td><td class="codes" /><pre class="brush: clojure">(declare sum product term)</pre></tr><tr><td class="docs"><p>term is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-
-<p>also, it is often necessary to use the var (with #') when using
-mutually or self-recursive rules
-note that because we use #' and we have predeclared, the rules can
-appear in any order</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule term
-  [open w* {:value sum} w* close] #{(fn [b c] (:value b))}
-  integer)</pre></tr><tr><td class="docs"><p>product is a squarepeg parser rule. Call with a seq of input or
+</td><td class="codes" /><pre class="brush: clojure">(declare sum product term)</pre></tr><tr><td class="docs"><p>product is a squarepeg parser rule. Call with a seq of input or
         use it as a rule (4 arguments).</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule product
   [{:a term} w* times w* {:b product}] #{(fn [b c] (* (:a b) (:b b)))}
@@ -2955,23 +2986,30 @@ appear in any order</p>
         use it as a rule (4 arguments).</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule sum
   [{:a product} w* plus w* {:b sum}] #{(fn [b c] (+ (:a b) (:b b)))}
-  product)</pre></tr><tr><td class="docs"><p>calc is a squarepeg parser rule. Call with a seq of input or
+  product)</pre></tr><tr><td class="docs"><p>term is a squarepeg parser rule. Call with a seq of input or
+        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule term
+  [open w* {:value sum} w* close] #{(fn [b c] (:value b))}
+  integer)</pre></tr><tr><td class="docs"><p>calc is a squarepeg parser rule. Call with a seq of input or
         use it as a rule (4 arguments).</p>
 
 <p>create a convenient function to call the rule with</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule calc sum)</pre></tr><tr><td class="docs"><p>try (calc "(2 +4) * 9")
 try (calc "2 + 4 * 9")</p>
-</td><td class="codes" /></tr><tr><td class="docs"><p>a future release will contain a dsl for defining the rules more conveniently</p>
 </td><td class="codes" /></tr><tr><td class="docs"><p>besides operating on strings, we can also operate on seqs
 we can define a math-expression optimizer</p>
 </td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(declare addition multiplication expr fncall args)</pre></tr><tr><td class="docs"><p>optimize is a squarepeg parser rule. Call with a seq of input or
         use it as a rule (4 arguments).</p>
+
+<p>call it like this:
+(optimize '[(+ 1 (* 2 3) a)]) => '(+ 7 a)</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule optimize expr)</pre></tr><tr><td class="docs"><p>expr is a squarepeg parser rule. Call with a seq of input or
         use it as a rule (4 arguments).</p>
 
 <p>an expression is a (+) expr, a (*) expr, another fncall, a var, or
-a number</p>
+a number
+=> defines a subrule (matching on a seq within a seq)</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule expr
   (=&gt; addition)
   (=&gt; multiplication)
@@ -3038,11 +3076,11 @@ args will recursively optimize the arguments</p>
 <p>match all args up to the end</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule args [{expr *} end])</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#squarepeg.example-genclass" name="squarepeg.example-genclass"><h1 class="project-name">squarepeg.example-genclass</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(ns squarepeg.example-genclass
-  (:use squarepeg)
+  (:use squarepeg.core)
   (:gen-class
    :name parsezero))</pre></tr><tr><td class="docs"><p>eatme is a squarepeg parser rule. Call with a seq of input or
         use it as a rule (4 arguments).</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule eatme \0)</pre></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(defn -eatme [this input]
-  (eatme input))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_squarepeg">squarepeg</li><li class="floating-toc-li" id="floating-toc_squarepeg.examples">squarepeg.examples</li><li class="floating-toc-li" id="floating-toc_squarepeg.example-genclass">squarepeg.example-genclass</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+  (eatme input))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_squarepeg.core">squarepeg.core</li><li class="floating-toc-li" id="floating-toc_squarepeg.examples">squarepeg.examples</li><li class="floating-toc-li" id="floating-toc_squarepeg.example-genclass">squarepeg.example-genclass</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
        SyntaxHighlighter.all()</script></body></html>

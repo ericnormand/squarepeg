@@ -13,10 +13,10 @@ share.
 Mainly, this involved reorganizing the namespace, paring down the
 combinators, and creating a macro for helping to define new rules.
 
-The namespace is now flatter. You <code>(use squarepeg)</code> instead
-of <code>(use 'squarepeg.combinators)</code> like it used to be. There
-is still <code>squarepeg.examples</code> but you should rarely have to
-import that.
+The namespace is now flatter. You <code>(use squarepeg.core)</code>
+instead of <code>(use 'squarepeg.combinators)</code> like it used to
+be. There is still <code>squarepeg.examples</code> but you should
+rarely have to import that.
 
 The binary sequence and alternation combinators (<code>mkcat</code>
 and <code>mkeither</code>) have been removed. <code>mkseq</code> now

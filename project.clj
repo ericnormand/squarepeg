@@ -10,7 +10,7 @@
 ;;
 ;; You must not remove this notice, or any other, from this software.
 
-(defproject squarepeg "0.6.0"
+(defproject squarepeg "0.6.1"
   :description "squarepeg is a PEG parser written in Clojure.  It can
   parse any sequence of data types, including lists and vectors."
   

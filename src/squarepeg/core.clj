@@ -20,11 +20,11 @@
 ;; memo is the memoization hash
 ;; :fail is a failure message for the user
 
-;; define success and failure
 (defn fail
   "Fail a rule call with the given msg"
   [msg memo]
   {:fail msg :m memo})
+
 (defn failure?
   "Is x a failure?"
   [x]
@@ -115,7 +115,6 @@ returns nothing."
         (succeed nil [] (:i r) (:b r) (:m r))
         r))))
 
-;; helper function to concatenate vecs
 (defn- vec-cat [a b]
   (reduce conj a b))
 
@@ -152,7 +151,7 @@ the return values of each."
                (let [[r s] (catreturns r1 r2 context)]
                  (succeed r s (:i r2) (:b r2) (:m r2)))))))))
   ([rule1 rule2 & rules]
-     (reduce mkseq  (cons rule1 (cons rule2 rules)))))
+     (reduce mkseq (mkseq rule1 rule2) rules)))
 
 (defn mkalt
   "Create a rule which succeeds if one of rules succeeds."
@@ -167,7 +166,7 @@ the return values of each."
            (rule2 input bindings context (:m r1))
            r1))))
   ([rule1 rule2 & rules]
-     (reduce mkalt (cons rule1 (cons rule2 rules)))))
+     (reduce mkalt (mkalt rule1 rule2) rules)))
 
 (defn mkpred
   "Create a rule which never returns a value or consumes input. It
@@ -227,7 +226,6 @@ least once."
         (succeed [] [] input bindings (:m r))
         r))))
 
-;; literal matcher
 (defn mklit
   "Create a rule which consumes one item of input. If it is equal to
 l, succeed."
