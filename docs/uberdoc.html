@@ -2529,7 +2529,7 @@ $(document).ready(function() {
 })
 </script><title>squarepeg -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">squarepeg</h1><h2 class="project-version">0.6.1</h2><br /><p>squarepeg is a PEG parser written in Clojure.  It can
   parse any sequence of data types, including lists and vectors.</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.1</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.2</td></tr><tr><td class="dep-name">lein-marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.6.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#squarepeg.core">squarepeg.core</a></li><li><a href="#squarepeg.examples">squarepeg.examples</a></li><li><a href="#squarepeg.example-genclass">squarepeg.example-genclass</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#squarepeg.core" name="squarepeg.core"><h1 class="project-name">squarepeg.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Eric Normand. All rights reserved.</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.2</td></tr><tr><td class="dep-name">lein-marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.6.1</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#squarepeg.core">squarepeg.core</a></li><li><a href="#squarepeg.examples">squarepeg.examples</a></li><li><a href="#squarepeg.example-genclass">squarepeg.example-genclass</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#squarepeg.core" name="squarepeg.core"><h1 class="project-name">squarepeg.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Copyright (c) Eric Normand. All rights reserved.</p>
 
 <p>The use and distribution terms for this software are covered by the
 Eclipse Public License 1.0 <a href="http://opensource.org/licenses/eclipse-1.0.php">1</a> which can be found in the file
@@ -2553,12 +2553,10 @@ memo is the memoization hash
 </td><td class="codes" /><pre class="brush: clojure">(defn failure?
   [x]
   (:fail x))</pre></tr><tr><td class="docs"><p>Succeed a rule call.</p>
-
-<p>Is x a success?</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn succeed
   [return sreturn input bindings memo]
-  {:i input :b bindings :r return :s sreturn :m memo})
-(defn success?
+  {:i input :b bindings :r return :s sreturn :m memo})</pre></tr><tr><td class="docs"><p>Is x a success?</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn success?
   [x]
   (not (failure? x)))</pre></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(defn- coerce [v t]
@@ -2581,14 +2579,65 @@ memo is the memoization hash
     ([input bindings context memo]
        (f input bindings context memo))))</pre></tr><tr><td class="docs"><p>Create a rule that fails if the next input matches rule and
 succeeds otherwise.</p>
+
+<p><code>mknot</code> inverts a rule. Given a rule, <code>mknot</code> returns a new
+rule that fails when the given rule succeeds, and vice versa. It never
+returns a value and never consumes input. It is most useful for making
+a rule that says "and is not followed by . . .".</p>
+
+<p>Example:</p>
+
+<pre><code>(def not-followed-by-whitespace (mknot whitespace))
+(not-followed-by-whitespace "abc" {} {} {}) 
+    =&gt; {:r nil :s [] :i (\a \b \c) :b {} :m {})
+(not-followed-by-whitespace " abc" {}) =&gt; {:fail "NOT failed"}
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mknot
+  &quot;Create a rule that fails if the next input matches rule and
+succeeds otherwise.
+`mknot` inverts a rule. Given a rule, `mknot` returns a new
+rule that fails when the given rule succeeds, and vice versa. It never
+returns a value and never consumes input. It is most useful for making
+a rule that says \&quot;and is not followed by . . .\&quot;.
+Example:
+    (def not-followed-by-whitespace (mknot whitespace))
+    (not-followed-by-whitespace \&quot;abc\&quot; {} {} {}) 
+        =&gt; {:r nil :s [] :i (\\a \\b \\c) :b {} :m {})
+    (not-followed-by-whitespace \&quot; abc\&quot; {}) =&gt; {:fail \&quot;NOT failed\&quot;}&quot;
   [rule]
   (fn not-fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
       (if (failure? r)
         (succeed nil [] input bindings (:m r))
         (fail (str &quot;NOT failed&quot;) (:m r))))))</pre></tr><tr><td class="docs"><p>Create a rule that binds the return value of rule to var.</p>
+
+<p><code>mkbind</code> creates a rule that will bind the return value of its first
+argument (a rule) to its second argument (typically a
+keyword). Binding is useful if you want to refer to the return value
+of a rule later.</p>
+
+<p>Example:</p>
+
+<pre><code>;; bind the matched digits to :digits
+(def digits (mkbind 
+    (mk1om (mkpr #(Character/isDigit %))) :digits))
+(digits "123" {} {} {}) 
+    =&gt; {:r [\1 \2 \3] :s [\1 \2 \3] :i nil :b {:digits [\1 \2 \3]}
+        :m {}}
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkbind
+  &quot;Create a rule that binds the return value of rule to var.
+`mkbind` creates a rule that will bind the return value of its first
+argument (a rule) to its second argument (typically a
+keyword). Binding is useful if you want to refer to the return value
+of a rule later.
+Example:
+    ;; bind the matched digits to :digits
+    (def digits (mkbind 
+        (mk1om (mkpr #(Character/isDigit %))) :digits))
+    (digits \&quot;123\&quot; {} {} {}) 
+        =&gt; {:r [\\1 \\2 \\3] :s [\\1 \\2 \\3] :i nil :b {:digits [\\1 \\2 \\3]}
+            :m {}}&quot;
   [rule var]
   (fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
@@ -2596,6 +2645,17 @@ succeeds otherwise.</p>
         (succeed (:r r) (:s r) (:i r) (assoc (:b r) var (coerce (:r r) (:expected-type context))) (:m r))
         r))))</pre></tr><tr><td class="docs"><p>Create a rule that consumes one item from the input. If pr applied
 to that item returns true, the rule succeeds. Otherwise, fail.</p>
+
+<p><code>mkpr</code> creates a rule that consumes one item from the input. It then
+calls the given predicate on it. If the predicate returns nil, the
+rule fails. Otherwise, the rule passes. The return value is the item
+consumed. (It does not consume input if the predicate fails.)</p>
+
+<p>Example:</p>
+
+<pre><code>;; match only even numbers
+(def even (mkpr evenp))
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkpr
   [pr]
   (fn [input bindings context memo]
@@ -2607,6 +2667,17 @@ to that item returns true, the rule succeeds. Otherwise, fail.</p>
           (fail (str i &quot; does not match predicate.&quot;) memo))))))</pre></tr><tr><td class="docs"><p>Create a rule that returns a value. The value is computed by ret,
 which is a function of a bindings map. The rule also binds the return
 value of rule to :ret.</p>
+
+<p><code>mkret</code> changes the current return value. It takes a
+function which takes the bindings map.</p>
+
+<p>Example:</p>
+
+<pre><code>;; parse digit characters as an int
+(def integer (mkret (mkbind (mk1om (mkpr #(Character/isDigit %))) 
+                            :digits) 
+                    #(Integer/parseInt (:digits %))))
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkret
   [rule ret]
   (fn [input bindings context memo]
@@ -2617,6 +2688,14 @@ value of rule to :ret.</p>
           (succeed v [v] (:i r) b (:m r)))
         r))))</pre></tr><tr><td class="docs"><p>Create a rule that succeeds, fails, and consumes just like rule but
 returns nothing.</p>
+
+<p><code>mknothing</code> makes a rule return nothing.</p>
+
+<p>Example:</p>
+
+<pre><code>;; ignore whitespace
+(def ignorewhitespace (mknothing (mk1om #(Character/isSpace %))))
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mknothing
   [rule]
   (fn [input bindings context memo]
@@ -2638,6 +2717,15 @@ returns nothing.</p>
    (let [val (vec-cat (:s r1) (:s r2))]
      [(coerce val (:expected-type context)) val])))</pre></tr><tr><td class="docs"><p>Create a rule that matches all of rules in order. Returns a vec of
 the return values of each.</p>
+
+<p><code>mkseq</code> takes any number of rules and creates a rule that must
+match all of them in sequence.</p>
+
+<p>Example:</p>
+
+<pre><code>;; match three even numbers then two odds
+(def even3odd2 (mkseq even even even odd odd))
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkseq
   ([]
      #(succeed nil [] %1 %2 %4))
@@ -2655,7 +2743,22 @@ the return values of each.</p>
                  (succeed r s (:i r2) (:b r2) (:m r2)))))))))
   ([rule1 rule2 &amp; rules]
      (reduce mkseq (mkseq rule1 rule2) rules)))</pre></tr><tr><td class="docs"><p>Create a rule which succeeds if one of rules succeeds.</p>
+
+<p><code>mkalt</code> takes any number of rules and tries each one in
+order. The first rule that matches is returned.</p>
+
+<p>Example:</p>
+
+<pre><code>;; match 'a' or 'b' or 'c' (in that order)
+(def aorborc (mkalt (mklit \a) (mklit \b) (mklit \c)))
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkalt
+  &quot;Create a rule which succeeds if one of rules succeeds.
+&lt;code&gt;mkalt&lt;/code&gt; takes any number of rules and tries each one in
+order. The first rule that matches is returned.
+Example:
+    ;; match 'a' or 'b' or 'c' (in that order)
+    (def aorborc (mkalt (mklit \\a) (mklit \\b) (mklit \\c)))&quot;
   ([]
      #(fail &quot;no rules to match&quot; %4))
   ([rule]
@@ -2670,6 +2773,18 @@ the return values of each.</p>
      (reduce mkalt (mkalt rule1 rule2) rules)))</pre></tr><tr><td class="docs"><p>Create a rule which never returns a value or consumes input. It
 succeeds if f returns non-nil and fails otherwise. f is a function of
 bindings and context.</p>
+
+<p><code>mkpred</code> takes a predicate and returns a rule that succeeds
+when the predicate applied to the first input element succeeds. It
+never returns a value and never consumes input. The predicate operates
+on the bindings map.</p>
+
+<p>Example:</p>
+
+<pre><code>;; match two numbers if their sum &gt; 100
+(def sum&gt;100 (mkseq (mkbind integer :a) (mkbind integer :b)
+                    (mkpred #(&gt; (+ (:a %) (:b %)) 100))))
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkpred
   [f]
   (fn [input bindings context memo]
@@ -2677,6 +2792,15 @@ bindings and context.</p>
       (succeed nil [] input bindings memo)
       (fail &quot;Failed to match predicate&quot; memo))))</pre></tr><tr><td class="docs"><p>Create a rule which matches rule consecutively as many times as
 possible. The rule never fails. Returns a seq of all matched values.</p>
+
+<p><code>mkzom</code> creates a rule which matches zero or more times. It
+will match the most possible times. It never fails.</p>
+
+<p>Example:</p>
+
+<pre><code>;; match zero or more whitespace
+(def w* (mkzom (mkpr #(Character/isSpace %))))
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkzom
   [rule]
   (fn [input bindings context memo]
@@ -2686,7 +2810,35 @@ possible. The rule never fails. Returns a seq of all matched values.</p>
           (recur (vec-cat val (:s r)) (:i r) (:b r) (:m r))
           (succeed val val input bindings memo))))))</pre></tr><tr><td class="docs"><p>Create a rule which contains the scope of the given rule. Bindings
 made in rule do not escape this rule's scope.</p>
+
+<p><code>mkscope</code> creates a scope protector around a rule so that
+bindings that the given rule creates do not leak into the current
+scope. This function should be used around your own rules.</p>
+
+<p>Example:</p>
+
+<pre><code>;; a rule that binds but does not protect
+(def as (mkbind (mk1om (mklit \a)) :as))
+;; a rule that calls as
+(def xab (mkseq (mkbind (mk1om (mklit \x)) :as) ;; bind to :as
+                (mkscope as)                    ;; make sure as
+                                                ;; does not bind
+                (mk1om (mklit \b))))
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkscope
+  &quot;Create a rule which contains the scope of the given rule. Bindings
+made in rule do not escape this rule's scope.
+&lt;code&gt;mkscope&lt;/code&gt; creates a scope protector around a rule so that
+bindings that the given rule creates do not leak into the current
+scope. This function should be used around your own rules.
+Example:
+    ;; a rule that binds but does not protect
+    (def as (mkbind (mk1om (mklit \\a)) :as))
+    ;; a rule that calls as
+    (def xab (mkseq (mkbind (mk1om (mklit \\x)) :as) ;; bind to :as
+                    (mkscope as)                    ;; make sure as
+                                                    ;; does not bind
+                    (mk1om (mklit \\b))))&quot;
   [rule]
   (fn [input bindings context memo]
     (let [r (rule input {} context memo)]
@@ -2694,6 +2846,19 @@ made in rule do not escape this rule's scope.</p>
         (succeed (:r r) (:s r) (:i r) bindings (:m r))
         r))))</pre></tr><tr><td class="docs"><p>Create a rule which applies a rule to a nested seq within the
 input.</p>
+
+<p><code>mksub</code> creates a rule that matches a nested seq within the
+seq.</p>
+
+<p>Example:</p>
+
+<pre><code>;; match a seq of ones
+(def ones (mk0om (mklit 1)))
+;; match a seq of ones followed by 2s
+(def onesthentwos (mkseq (mksub ones) (mk0om (mklit 2))))
+(onesthentwos [[1 1 1] 2 2] {}) =&gt; SUCCESS
+(onesthentwos [1 1 1 2 2] {}) =&gt; FAILURE
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mksub
   [rule]
   (fn [input bindings context memo]
@@ -2704,9 +2869,43 @@ input.</p>
           r))
       (fail &quot;Input not a seq.&quot; memo))))</pre></tr><tr><td class="docs"><p>Create a rule which matches rule as many times as possible but at
 least once.</p>
+
+<p><code>mk1om</code> creates a rule that matches the given rule at least
+once. Returns all matches.</p>
+
+<p>Example:</p>
+
+<pre><code>;; match one or more digits
+(def digits (mk1om digit))
+(digits "1234" {} {} {}) 
+    =&gt; {:r [\1 \2 \3 \4] :s [\1 \2 \3 \4] :i nil :b {} :m {}}
+(digits "123 4" {} {} {}) 
+    =&gt; {:r [\1 \2 \3] :s [\1 \2 \3] :i (\4) :b {} :m {}}
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mk1om
+  &quot;Create a rule which matches rule as many times as possible but at
+least once.
+&lt;code&gt;mk1om&lt;/code&gt; creates a rule that matches the given rule at least
+once. Returns all matches.
+Example:
+    ;; match one or more digits
+    (def digits (mk1om digit))
+    (digits \&quot;1234\&quot; {} {} {}) 
+        =&gt; {:r [\\1 \\2 \\3 \\4] :s [\\1 \\2 \\3 \\4] :i nil :b {} :m {}}
+    (digits \&quot;123 4\&quot; {} {} {}) 
+        =&gt; {:r [\\1 \\2 \\3] :s [\\1 \\2 \\3] :i (\\4) :b {} :m {}}&quot;
   [rule]
   (mkseq rule (mkzom rule)))</pre></tr><tr><td class="docs"><p>Create a rule which matches rule or not, but never fails.</p>
+
+<p><code>mkopt</code> creates a rule that always succeeds. If the rule it
+is given matches, it returns its value. Otherwise, it succeeds with no
+return.</p>
+
+<p>Example:</p>
+
+<pre><code>;; optionally match 'xyz'
+(def xyz? (mkopt (mkstr "xyz")))
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkopt
   [rule]
   (fn [input bindings context memo]
@@ -2715,13 +2914,38 @@ least once.</p>
         (succeed [] [] input bindings (:m r))
         r))))</pre></tr><tr><td class="docs"><p>Create a rule which consumes one item of input. If it is equal to
 l, succeed.</p>
+
+<p><code>mklit</code> creates a rule that matches a value if it is equal.</p>
+
+<p>Example:</p>
+
+<pre><code>;; match the number 12
+(def twelve (mklit 12))
+(twelve [12] {} {} {}) =&gt; {:r 12 :s [12] :i nil :b {} :m {}}
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mklit
   [l]
   (mkpr #(= l %)))</pre></tr><tr><td class="docs"><p>Create a rule which matches all of the characters of a String s in
 sequence.</p>
+
+<p><code>mkstr</code> create a sequential rule that matches all of the
+characters of a string.</p>
+
+<p>Example:</p>
+
+<pre><code>;; match the string "hello" followed by whitespace
+(def hellow+ (mkseq [(mkstr "hello") (mk1om whitespace)]))
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkstr
   [s]
   (apply mkseq (map mklit s)))</pre></tr><tr><td class="docs"><p>Create a rule that memoizes the given rule.</p>
+
+<p><code>mkmemo</code> creates a new rule which memoizes the given
+rule. The best way to use this is directly inside of a
+<code>mkscope</code> when defining a top-level rule for most efficient
+results. Memoizing is done to trade space efficiency for time
+efficiency. Effectively using mkmemo will make a parse use linear
+space and linear time with respect to input size.</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkmemo
   [rule]
   (let [memoid (gensym)]
@@ -2748,6 +2972,19 @@ sequence.</p>
    :otherwise
    (lazy-seq (cons (first l) (unhead (rest l) tl)))))</pre></tr><tr><td class="docs"><p>Create a rule that binds the input sequence that is matched
   to :match.</p>
+
+<p><code>mkmatch</code> create a new rule which returns the matched
+portion of the input. It binds that portion of the input matched by
+the given rule to :match. It also coerces Strings if possible.</p>
+
+<p>Example:</p>
+
+<pre><code>;; match a "SELECT" statement in a contrived query language.
+;; perform a "lookup" of everything after the SELECT followed
+;; by whitespace
+(def selectstmt (mkscope (mkmemo (mkret (mkseq [(mkstr "SELECT") w+
+   (mkmatch (mk1om anything))]) (fn [b c] (lookup (:match b))))))
+</code></pre>
 </td><td class="codes" /><pre class="brush: clojure">(defn mkmatch
   [rule]
   (fn [input bindings context memo]
@@ -2858,61 +3095,61 @@ sequence.</p>
      (list 'def
            (with-meta name
              {:arglists ''([input] [input context] [input bindings context memo])
-              :doc (str name &quot; is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).&quot;)})
-           `(mkfn (mkscope (mkmemo ~(apply transbody body)))))))</pre></tr><tr><td class="docs"><p>always is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+              :doc (str name &quot; is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).&quot;)})
+           `(mkfn (mkscope (mkmemo ~(apply transbody body)))))))</pre></tr><tr><td class="docs"><p>always is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
-<p>never is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+<p>never is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
-<p>anything is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule always (mkpred (constantly true)))
-(defrule never  (mkpred (constantly false)))
-(defrule anything (mkpr (constantly true)))</pre></tr><tr><td class="docs"><p>whitespace is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule whitespace (mkpr #(Character/isSpace %)))</pre></tr><tr><td class="docs"><p>digit is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+<p>anything is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule always   (mkpred (constantly true)))
+(defrule never    (mkpred (constantly false)))
+(defrule anything (mkpr   (constantly true)))</pre></tr><tr><td class="docs"><p>whitespace is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule whitespace (mkpr #(Character/isSpace %)))</pre></tr><tr><td class="docs"><p>digit is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
-<p>alpha is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+<p>alpha is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
-<p>alphanum is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule digit (mkpr #(Character/isDigit %)))
-(defrule alpha (mkpr #(Character/isLetter %)))
-(defrule alphanum (mkpr #(Character/isLetterOrDigit %)))</pre></tr><tr><td class="docs"><p>end is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule end (mknot anything))</pre></tr><tr><td class="docs"><p>match-char is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+<p>alphanum is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule digit    (mkpr #(Character/isDigit         %)))
+(defrule alpha    (mkpr #(Character/isLetter        %)))
+(defrule alphanum (mkpr #(Character/isLetterOrDigit %)))</pre></tr><tr><td class="docs"><p>end is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule end (mknot anything))</pre></tr><tr><td class="docs"><p>match-char is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
-<p>match-float is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+<p>match-float is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
-<p>match-hash is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+<p>match-hash is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
-<p>match-integer is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+<p>match-integer is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
-<p>match-keyword is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+<p>match-keyword is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
-<p>match-list is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+<p>match-list is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
-<p>match-number is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+<p>match-number is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
-<p>match-string is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+<p>match-string is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
-<p>match-symbol is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+<p>match-symbol is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
-<p>match-vector is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+<p>match-vector is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule match-char    (mkpr char?    ))
 (defrule match-float   (mkpr float?   ))
 (defrule match-hash    (mkpr map?     ))
@@ -2933,65 +3170,65 @@ of this license.</p>
 <p>You must not remove this notice, or any other, from this software.</p>
 </td><td class="codes" /><pre class="brush: clojure">(ns squarepeg.examples
   (:use squarepeg.core))</pre></tr><tr><td class="docs"><p>match 0 or more whitespace</p>
-</td><td class="codes" /></tr><tr><td class="docs"><p>w** is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule  w**  {whitespace *})</pre></tr><tr><td class="docs"><p>w* is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+</td><td class="codes" /></tr><tr><td class="docs"><p>w** is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule  w**  {whitespace *})</pre></tr><tr><td class="docs"><p>w* is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>match 0 or more whitespace but return nothing
 (effectively ignoring whitespace)</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule w* (mknothing (mkzom whitespace)))</pre></tr><tr><td class="docs"><p>newline is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule w* (mknothing (mkzom whitespace)))</pre></tr><tr><td class="docs"><p>newline is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>match a newline</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule newline \newline)</pre></tr><tr><td class="docs"><p>non-newline is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule newline \newline)</pre></tr><tr><td class="docs"><p>non-newline is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>match anything that is not a newline</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule non-newline [{! newline} anything])</pre></tr><tr><td class="docs"><p>clj-comment is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule non-newline [{! newline} anything])</pre></tr><tr><td class="docs"><p>clj-comment is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>match clojure style single-line comments</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule clj-comment [\; {non-newline *} (or newline
-                                             end)])</pre></tr><tr><td class="docs"><p>integer is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+                                             end)])</pre></tr><tr><td class="docs"><p>integer is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>match an integer and parse it
 :ret is bound to the entire match's return value
 this will only work if context contains :expected-type :string
 which happens when you start with a string</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule integer {digit +} #{(fn [b c] (Integer/parseInt (:ret b)))})</pre></tr><tr><td class="docs"><p>plus is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule integer {digit +} #{(fn [b c] (Integer/parseInt (:ret b)))})</pre></tr><tr><td class="docs"><p>plus is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>match a + character</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule plus \+)</pre></tr><tr><td class="docs"><p>times is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule plus \+)</pre></tr><tr><td class="docs"><p>times is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>match a * character</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule times \*)</pre></tr><tr><td class="docs"><p>open is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule times \*)</pre></tr><tr><td class="docs"><p>open is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>match an open paren</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule open \()</pre></tr><tr><td class="docs"><p>close is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule open \()</pre></tr><tr><td class="docs"><p>close is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>match a close paren</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule close \))</pre></tr><tr><td class="docs"><p>using the above rules, we can define a simple calculator</p>
 </td><td class="codes" /></tr><tr><td class="docs"><p>we must declare our variables here because the rules are mutually recursive</p>
-</td><td class="codes" /><pre class="brush: clojure">(declare sum product term)</pre></tr><tr><td class="docs"><p>product is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(declare sum product term)</pre></tr><tr><td class="docs"><p>product is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule product
   [{:a term} w* times w* {:b product}] #{(fn [b c] (* (:a b) (:b b)))}
-  term)</pre></tr><tr><td class="docs"><p>sum is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+  term)</pre></tr><tr><td class="docs"><p>sum is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule sum
   [{:a product} w* plus w* {:b sum}] #{(fn [b c] (+ (:a b) (:b b)))}
-  product)</pre></tr><tr><td class="docs"><p>term is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+  product)</pre></tr><tr><td class="docs"><p>term is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule term
   [open w* {:value sum} w* close] #{(fn [b c] (:value b))}
-  integer)</pre></tr><tr><td class="docs"><p>calc is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+  integer)</pre></tr><tr><td class="docs"><p>calc is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>create a convenient function to call the rule with</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule calc sum)</pre></tr><tr><td class="docs"><p>try (calc "(2 +4) * 9")
@@ -2999,13 +3236,13 @@ try (calc "2 + 4 * 9")</p>
 </td><td class="codes" /></tr><tr><td class="docs"><p>besides operating on strings, we can also operate on seqs
 we can define a math-expression optimizer</p>
 </td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(declare addition multiplication expr fncall args)</pre></tr><tr><td class="docs"><p>optimize is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(declare addition multiplication expr fncall args)</pre></tr><tr><td class="docs"><p>optimize is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>call it like this:
 (optimize '[(+ 1 (* 2 3) a)]) => '(+ 7 a)</p>
-</td><td class="codes" /><pre class="brush: clojure">(defrule optimize expr)</pre></tr><tr><td class="docs"><p>expr is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defrule optimize expr)</pre></tr><tr><td class="docs"><p>expr is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>an expression is a (+) expr, a (*) expr, another fncall, a var, or
 a number
@@ -3018,8 +3255,8 @@ a number
   match-number)</pre></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(defn separate [pr coll]
   [(filter pr coll)
-   (filter (complement pr) coll)])</pre></tr><tr><td class="docs"><p>addition is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+   (filter (complement pr) coll)])</pre></tr><tr><td class="docs"><p>addition is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>an addition expression is a + followed by arguments
 args will recursively optimize the arguments</p>
@@ -3043,8 +3280,8 @@ args will recursively optimize the arguments</p>
          `(+ ~@other)
          ;; otherwise, return the addition
          :otherwise 
-         `(+ ~sum ~@other))))})</pre></tr><tr><td class="docs"><p>multiplication is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+         `(+ ~sum ~@other))))})</pre></tr><tr><td class="docs"><p>multiplication is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule multiplication  [(mklit '*) {:args args}]
   ;;find the literal numbers
   #{(fn [b c]
@@ -3066,20 +3303,20 @@ args will recursively optimize the arguments</p>
          `(* ~@other)
          ;; otherwise, return the addition
          :otherwise 
-         `(* ~prod ~@other))))})</pre></tr><tr><td class="docs"><p>fncall is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+         `(* ~prod ~@other))))})</pre></tr><tr><td class="docs"><p>fncall is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule fncall
   [{:sym match-symbol} {:args args}] #{(fn [b c]
-                                         `(~(:sym b) ~@(:args b)))})</pre></tr><tr><td class="docs"><p>args is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+                                         `(~(:sym b) ~@(:args b)))})</pre></tr><tr><td class="docs"><p>args is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 
 <p>match all args up to the end</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule args [{expr *} end])</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#squarepeg.example-genclass" name="squarepeg.example-genclass"><h1 class="project-name">squarepeg.example-genclass</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(ns squarepeg.example-genclass
   (:use squarepeg.core)
   (:gen-class
-   :name parsezero))</pre></tr><tr><td class="docs"><p>eatme is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).</p>
+   :name parsezero))</pre></tr><tr><td class="docs"><p>eatme is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).</p>
 </td><td class="codes" /><pre class="brush: clojure">(defrule eatme \0)</pre></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(defn -eatme [this input]
   (eatme input))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_squarepeg.core">squarepeg.core</li><li class="floating-toc-li" id="floating-toc_squarepeg.examples">squarepeg.examples</li><li class="floating-toc-li" id="floating-toc_squarepeg.example-genclass">squarepeg.example-genclass</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;

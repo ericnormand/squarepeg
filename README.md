@@ -144,7 +144,7 @@ Combinators are functions that generate rules.
 
 ####Built-in combinators
 
-Combinators are defined in src/squarepeg/combinators.clj
+Combinators are defined in src/squarepeg/core.clj
 
 <code>mknot</code> inverts a rule. Given a rule, mknot returns a new
 rule that fails when the given rule succeeds, and vice versa. It never
@@ -189,8 +189,8 @@ Example:
 
     ;; parse digit characters as an int
     (def integer (mkret (mkbind (mk1om (mkpr #(Character/isDigit %))) 
-                                :digits) #(Integer/parseInt 
-                                             (:digits %))))
+                                :digits) 
+                        #(Integer/parseInt (:digits %))))
 
 <code>mknothing</code> makes a rule return nothing.
 

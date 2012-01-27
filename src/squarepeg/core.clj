@@ -34,6 +34,7 @@
   "Succeed a rule call."
   [return sreturn input bindings memo]
   {:i input :b bindings :r return :s sreturn :m memo})
+
 (defn success?
   "Is x a success?"
   [x]
@@ -63,7 +64,19 @@
 
 (defn mknot
   "Create a rule that fails if the next input matches rule and
-succeeds otherwise."
+succeeds otherwise.
+
+`mknot` inverts a rule. Given a rule, `mknot` returns a new
+rule that fails when the given rule succeeds, and vice versa. It never
+returns a value and never consumes input. It is most useful for making
+a rule that says \"and is not followed by . . .\".
+
+Example:
+
+    (def not-followed-by-whitespace (mknot whitespace))
+    (not-followed-by-whitespace \"abc\" {} {} {}) 
+        => {:r nil :s [] :i (\\a \\b \\c) :b {} :m {})
+    (not-followed-by-whitespace \" abc\" {}) => {:fail \"NOT failed\"}"
   [rule]
   (fn not-fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
@@ -72,7 +85,21 @@ succeeds otherwise."
         (fail (str "NOT failed") (:m r))))))
 
 (defn mkbind
-  "Create a rule that binds the return value of rule to var."
+  "Create a rule that binds the return value of rule to var.
+
+`mkbind` creates a rule that will bind the return value of its first
+argument (a rule) to its second argument (typically a
+keyword). Binding is useful if you want to refer to the return value
+of a rule later.
+
+Example:
+
+    ;; bind the matched digits to :digits
+    (def digits (mkbind 
+        (mk1om (mkpr #(Character/isDigit %))) :digits))
+    (digits \"123\" {} {} {}) 
+        => {:r [\\1 \\2 \\3] :s [\\1 \\2 \\3] :i nil :b {:digits [\\1 \\2 \\3]}
+            :m {}}"
   [rule var]
   (fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
@@ -82,7 +109,17 @@ succeeds otherwise."
 
 (defn mkpr
   "Create a rule that consumes one item from the input. If pr applied
-to that item returns true, the rule succeeds. Otherwise, fail."
+to that item returns true, the rule succeeds. Otherwise, fail.
+
+`mkpr` creates a rule that consumes one item from the input. It then
+calls the given predicate on it. If the predicate returns nil, the
+rule fails. Otherwise, the rule passes. The return value is the item
+consumed. (It does not consume input if the predicate fails.)
+
+Example:
+
+    ;; match only even numbers
+    (def even (mkpr evenp))"
   [pr]
   (fn [input bindings context memo]
     (if (nil? (seq input))
@@ -95,7 +132,17 @@ to that item returns true, the rule succeeds. Otherwise, fail."
 (defn mkret
   "Create a rule that returns a value. The value is computed by ret,
 which is a function of a bindings map. The rule also binds the return
-value of rule to :ret."
+value of rule to :ret.
+
+<code>mkret</code> changes the current return value. It takes a
+function which takes the bindings map.
+
+Example:
+
+    ;; parse digit characters as an int
+    (def integer (mkret (mkbind (mk1om (mkpr #(Character/isDigit %))) 
+                                :digits) 
+                        #(Integer/parseInt (:digits %))))"
   [rule ret]
   (fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
@@ -107,7 +154,14 @@ value of rule to :ret."
 
 (defn mknothing
   "Create a rule that succeeds, fails, and consumes just like rule but
-returns nothing."
+returns nothing.
+
+<code>mknothing</code> makes a rule return nothing.
+
+Example:
+
+    ;; ignore whitespace
+    (def ignorewhitespace (mknothing (mk1om #(Character/isSpace %))))"
   [rule]
   (fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
@@ -135,7 +189,15 @@ returns nothing."
 
 (defn mkseq
   "Create a rule that matches all of rules in order. Returns a vec of
-the return values of each."
+the return values of each.
+
+<code>mkseq</code> takes any number of rules and creates a rule that must
+match all of them in sequence.
+
+Example:
+
+    ;; match three even numbers then two odds
+    (def even3odd2 (mkseq even even even odd odd))"
   ([]
      #(succeed nil [] %1 %2 %4))
   ([rule]
@@ -154,7 +216,15 @@ the return values of each."
      (reduce mkseq (mkseq rule1 rule2) rules)))
 
 (defn mkalt
-  "Create a rule which succeeds if one of rules succeeds."
+  "Create a rule which succeeds if one of rules succeeds.
+
+<code>mkalt</code> takes any number of rules and tries each one in
+order. The first rule that matches is returned.
+
+Example:
+
+    ;; match 'a' or 'b' or 'c' (in that order)
+    (def aorborc (mkalt (mklit \\a) (mklit \\b) (mklit \\c)))"
   ([]
      #(fail "no rules to match" %4))
   ([rule]
@@ -171,7 +241,18 @@ the return values of each."
 (defn mkpred
   "Create a rule which never returns a value or consumes input. It
 succeeds if f returns non-nil and fails otherwise. f is a function of
-bindings and context."
+bindings and context.
+
+<code>mkpred</code> takes a predicate and returns a rule that succeeds
+when the predicate applied to the first input element succeeds. It
+never returns a value and never consumes input. The predicate operates
+on the bindings map.
+
+Example:
+
+    ;; match two numbers if their sum > 100
+    (def sum>100 (mkseq (mkbind integer :a) (mkbind integer :b)
+                        (mkpred #(> (+ (:a %) (:b %)) 100))))"
   [f]
   (fn [input bindings context memo]
     (if (f bindings context)
@@ -180,7 +261,15 @@ bindings and context."
 
 (defn mkzom
   "Create a rule which matches rule consecutively as many times as
-possible. The rule never fails. Returns a seq of all matched values."
+possible. The rule never fails. Returns a seq of all matched values.
+
+<code>mkzom</code> creates a rule which matches zero or more times. It
+will match the most possible times. It never fails.
+
+Example:
+
+    ;; match zero or more whitespace
+    (def w* (mkzom (mkpr #(Character/isSpace %))))"
   [rule]
   (fn [input bindings context memo]
     (loop [val [] input input bindings bindings memo memo]
@@ -191,7 +280,21 @@ possible. The rule never fails. Returns a seq of all matched values."
 
 (defn mkscope
   "Create a rule which contains the scope of the given rule. Bindings
-made in rule do not escape this rule's scope."
+made in rule do not escape this rule's scope.
+
+<code>mkscope</code> creates a scope protector around a rule so that
+bindings that the given rule creates do not leak into the current
+scope. This function should be used around your own rules.
+
+Example:
+
+    ;; a rule that binds but does not protect
+    (def as (mkbind (mk1om (mklit \\a)) :as))
+    ;; a rule that calls as
+    (def xab (mkseq (mkbind (mk1om (mklit \\x)) :as) ;; bind to :as
+                    (mkscope as)                    ;; make sure as
+                                                    ;; does not bind
+                    (mk1om (mklit \\b))))"
   [rule]
   (fn [input bindings context memo]
     (let [r (rule input {} context memo)]
@@ -201,7 +304,19 @@ made in rule do not escape this rule's scope."
 
 (defn mksub
   "Create a rule which applies a rule to a nested seq within the
-input."
+input.
+
+<code>mksub</code> creates a rule that matches a nested seq within the
+seq.
+
+Example:
+
+    ;; match a seq of ones
+    (def ones (mk0om (mklit 1)))
+    ;; match a seq of ones followed by 2s
+    (def onesthentwos (mkseq (mksub ones) (mk0om (mklit 2))))
+    (onesthentwos [[1 1 1] 2 2] {}) => SUCCESS
+    (onesthentwos [1 1 1 2 2] {}) => FAILURE"
   [rule]
   (fn [input bindings context memo]
     (if (and (seq input) (sequential? (first input)))
@@ -213,12 +328,33 @@ input."
 
 (defn mk1om
   "Create a rule which matches rule as many times as possible but at
-least once."
+least once.
+
+<code>mk1om</code> creates a rule that matches the given rule at least
+once. Returns all matches.
+
+Example:
+
+    ;; match one or more digits
+    (def digits (mk1om digit))
+    (digits \"1234\" {} {} {}) 
+        => {:r [\\1 \\2 \\3 \\4] :s [\\1 \\2 \\3 \\4] :i nil :b {} :m {}}
+    (digits \"123 4\" {} {} {}) 
+        => {:r [\\1 \\2 \\3] :s [\\1 \\2 \\3] :i (\\4) :b {} :m {}}"
   [rule]
   (mkseq rule (mkzom rule)))
 
 (defn mkopt
-  "Create a rule which matches rule or not, but never fails."
+  "Create a rule which matches rule or not, but never fails.
+
+<code>mkopt</code> creates a rule that always succeeds. If the rule it
+is given matches, it returns its value. Otherwise, it succeeds with no
+return.
+
+Example:
+
+    ;; optionally match 'xyz'
+    (def xyz? (mkopt (mkstr \"xyz\")))"
   [rule]
   (fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
@@ -228,18 +364,41 @@ least once."
 
 (defn mklit
   "Create a rule which consumes one item of input. If it is equal to
-l, succeed."
+l, succeed.
+
+<code>mklit</code> creates a rule that matches a value if it is equal.
+
+Example:
+
+    ;; match the number 12
+    (def twelve (mklit 12))
+    (twelve [12] {} {} {}) => {:r 12 :s [12] :i nil :b {} :m {}}"
   [l]
   (mkpr #(= l %)))
 
 (defn mkstr
   "Create a rule which matches all of the characters of a String s in
-sequence."
+sequence.
+
+<code>mkstr</code> create a sequential rule that matches all of the
+characters of a string.
+
+Example:
+
+    ;; match the string \"hello\" followed by whitespace
+    (def hellow+ (mkseq [(mkstr \"hello\") (mk1om whitespace)]))"
   [s]
   (apply mkseq (map mklit s)))
 
 (defn mkmemo
-  "Create a rule that memoizes the given rule."
+  "Create a rule that memoizes the given rule.
+
+<code>mkmemo</code> creates a new rule which memoizes the given
+rule. The best way to use this is directly inside of a
+<code>mkscope</code> when defining a top-level rule for most efficient
+results. Memoizing is done to trade space efficiency for time
+efficiency. Effectively using mkmemo will make a parse use linear
+space and linear time with respect to input size."
   [rule]
   (let [memoid (gensym)]
     (fn [input bindings context memo]
@@ -269,7 +428,19 @@ sequence."
 
 (defn mkmatch
   "Create a rule that binds the input sequence that is matched
-  to :match."
+  to :match.
+
+<code>mkmatch</code> create a new rule which returns the matched
+portion of the input. It binds that portion of the input matched by
+the given rule to :match. It also coerces Strings if possible.
+
+Example:
+
+    ;; match a \"SELECT\" statement in a contrived query language.
+    ;; perform a \"lookup\" of everything after the SELECT followed
+    ;; by whitespace
+    (def selectstmt (mkscope (mkmemo (mkret (mkseq [(mkstr \"SELECT\") w+
+       (mkmatch (mk1om anything))]) (fn [b c] (lookup (:match b))))))"
   [rule]
   (fn [input bindings context memo]
     (let [before input
@@ -384,18 +555,18 @@ sequence."
      (list 'def
            (with-meta name
              {:arglists ''([input] [input context] [input bindings context memo])
-              :doc (str name " is a squarepeg parser rule. Call with a seq of input or
-        use it as a rule (4 arguments).")})
+              :doc (str name " is a squarepeg parser rule. Call with a
+        seq of input or use it as a rule (4 arguments).")})
            `(mkfn (mkscope (mkmemo ~(apply transbody body)))))))
 
-(defrule always (mkpred (constantly true)))
-(defrule never  (mkpred (constantly false)))
-(defrule anything (mkpr (constantly true)))
+(defrule always   (mkpred (constantly true)))
+(defrule never    (mkpred (constantly false)))
+(defrule anything (mkpr   (constantly true)))
 
 (defrule whitespace (mkpr #(Character/isSpace %)))
 
-(defrule digit (mkpr #(Character/isDigit %)))
-(defrule alpha (mkpr #(Character/isLetter %)))
+(defrule digit    (mkpr #(Character/isDigit         %)))
+(defrule alpha    (mkpr #(Character/isLetter        %)))
 (defrule alphanum (mkpr #(Character/isLetterOrDigit %)))
 
 (defrule end (mknot anything))

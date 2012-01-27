@@ -14,9 +14,9 @@
   :description "squarepeg is a PEG parser written in Clojure.  It can
   parse any sequence of data types, including lists and vectors."
   
-  :dependencies     [[org.clojure/clojure  "1.2.1"]]
+  :dependencies     [[org.clojure/clojure  "1.3.0"]]
   
   :dev-dependencies [[swank-clojure        "1.3.2"]
-                     [lein-marginalia      "0.6.0"]]
+                     [lein-marginalia      "0.6.1"]]
 
   :aot [squarepeg.example-genclass])
