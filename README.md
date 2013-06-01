@@ -254,9 +254,9 @@ seq.
 Example:
 
     ;; match a seq of ones
-    (def ones (mk0om (mklit 1)))
+    (def ones (mkzom (mklit 1)))
     ;; match a seq of ones followed by 2s
-    (def onesthentwos (mkseq (mksub ones) (mk0om (mklit 2))))
+    (def onesthentwos (mkseq (mksub ones) (mkzom (mklit 2))))
     (onesthentwos [[1 1 1] 2 2] {}) => SUCCESS
     (onesthentwos [1 1 1 2 2] {}) => FAILURE
 
