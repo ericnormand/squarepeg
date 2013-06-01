@@ -88,7 +88,7 @@ message.
 
 ###Success
 
-Success is defined as a map of four values, :i, :b, :r, :s, and :m.
+Success is defined as a map of five keys, :i, :b, :r, :s, and :m.
 
 :i is the rest of the input after the rule has consumed all it wants.
 
