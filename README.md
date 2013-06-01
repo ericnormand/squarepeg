@@ -180,7 +180,7 @@ predicate fails.)
 Example:
 
     ;; match only even numbers
-    (def even (mkpr evenp))
+    (def even (mkpr even?))
 
 <code>mkret</code> changes the current return value. It takes a
 function which takes the bindings map.
