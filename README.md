@@ -17,7 +17,7 @@ Special thanks also goes to [Christophe Grand][cgrand] for his help.
 
 ### To use in your project.
 
-Add <code>[squarepeg "0.6.0"]</code> to your project's dependencies then
+Add <code>[squarepeg "0.6.1"]</code> to your project's dependencies then
 run.
 
     lein deps
