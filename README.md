@@ -183,14 +183,14 @@ Example:
     (def even (mkpr even?))
 
 <code>mkret</code> changes the current return value. It takes a
-function which takes the bindings map.
+function which takes the bindings map and a context.
 
 Example:
 
     ;; parse digit characters as an int
     (def integer (mkret (mkbind (mk1om (mkpr #(Character/isDigit %))) 
                                 :digits) 
-                        #(Integer/parseInt (:digits %))))
+                        (fn [b c] (Integer/parseInt (:digits b)))))
 
 <code>mknothing</code> makes a rule return nothing.
 

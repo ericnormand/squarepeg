@@ -135,14 +135,14 @@ which is a function of a bindings map. The rule also binds the return
 value of rule to :ret.
 
 <code>mkret</code> changes the current return value. It takes a
-function which takes the bindings map.
+function which takes the bindings map and the context.
 
 Example:
 
     ;; parse digit characters as an int
     (def integer (mkret (mkbind (mk1om (mkpr #(Character/isDigit %))) 
                                 :digits) 
-                        #(Integer/parseInt (:digits %))))"
+                        (fn [b c] (Integer/parseInt (:digits b)))))"
   [rule ret]
   (fn [input bindings context memo]
     (let [r (rule input bindings context memo)]
