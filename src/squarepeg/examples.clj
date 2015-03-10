@@ -10,140 +10,156 @@
 ;;
 ;; You must not remove this notice, or any other, from this software.
 (ns squarepeg.examples
-  (:use squarepeg.core))
+  (:require [squarepeg.core :refer :all]))
 
 ;; match 0 or more whitespace
-
-(defrule  w**  {whitespace *})
+(defrule w** (mkzom whitespace))
 
 ;; match 0 or more whitespace but return nothing
 ;; (effectively ignoring whitespace)
 (defrule w* (mknothing (mkzom whitespace)))
 
 ;; match a newline
-(defrule newline \newline)
+(defrule nl (mklit \newline))
 
 ;; match anything that is not a newline
-(defrule non-newline [{! newline} anything])
+(defrule non-newline (mkseq (mknot nl) anything))
 
 ;; match clojure style single-line comments
-(defrule clj-comment [\; {non-newline *} (or newline
-                                             end)])
+(defrule clj-comment (mkseq w* (mklit \;) (mkzom non-newline)
+                            (mkalt nl end)))
 
-;; match an integer and parse it
-;; :ret is bound to the entire match's return value
-;; this will only work if context contains :expected-type :string
-;; which happens when you start with a string
-(defrule integer {digit +} #{(fn [b c] (Integer/parseInt (:ret b)))})
-
-;; match a + character
-(defrule plus \+)
-
-;; match a * character
-(defrule times \*)
-
-;; match an open paren
-(defrule open \()
-
-;; match a close paren
-(defrule close \))
-
-;; using the above rules, we can define a simple calculator
-
-;; we must declare our variables here because the rules are mutually recursive
-(declare sum product term)
-
-(defrule product
-  [{:a term} w* times w* {:b product}] #{(fn [b c] (* (:a b) (:b b)))}
-  term)
-
+;; a calculator (can do +, *, and parens
+(defrule calc
+  (mkseq w* sum end))
 (defrule sum
-  [{:a product} w* plus w* {:b sum}] #{(fn [b c] (+ (:a b) (:b b)))}
-  product)
-
+  (mkalt
+   (mkret
+    (mkseq
+     (mkbind #'product :p)
+     w*
+     (mklit \+)
+     w*
+     (mkbind #'sum :s))
+    (fn [b _] (+ (:p b) (:s b))))
+   #'product))
+(defrule product
+  (mkalt
+   (mkret
+    (mkseq
+     (mkbind #'term :t)
+     w*
+     (mklit \*)
+     w*
+     (mkbind #'product :p))
+    (fn [b _] (* (:t b) (:p b))))
+   #'term))
 (defrule term
-  [open w* {:value sum} w* close] #{(fn [b c] (:value b))}
-  integer)
+  (mkalt
+   (mkret
+    (mkseq
+     (mklit \()
+     w*
+     (mkbind #'sum :s)
+     w*
+     (mklit \)))
+    :s)
+   #'integer))
+(defrule integer (mkret (mk1om digit) (fn [b _] (Integer/parseInt (:ret b)))))
 
-;; create a convenient function to call the rule with
-(defrule calc sum)
+;; give it a shot:
 
-;; try (calc "(2 +4) * 9")
-;; try (calc "2 + 4 * 9")
+;; (calc "50 + 20") => 70
+;; (calc "2 * (2 + 2 * 2)") => 12
 
-;; besides operating on strings, we can also operate on seqs
-;; we can define a math-expression optimizer
+;; whitespace is a little awkward in `calc`
+;; we can make it easier by doing whitespace "at the bottom"
 
-(declare addition multiplication expr fncall args)
+;; let's make a more complex parser that can handle +,*,- (including -
+;; as negation),/, and decimal numbers
 
-;;  call it like this:
-;; (optimize '[(+ 1 (* 2 3) a)]) => '(+ 7 a)
-(defrule optimize expr)
+;; I'll use caps to distinguish the rules from the grammar above
 
-;; an expression is a (+) expr, a (*) expr, another fncall, a var, or
-;; a number
-;; => defines a subrule (matching on a seq within a seq)
-(defrule expr
-  (=> addition)
-  (=> multiplication)
-  (=> fncall)
-  match-symbol
-  match-number)
+(defrule CALC
+  (mkseq w* #'SUM end))
 
-(defn separate [pr coll]
-  [(filter pr coll)
-   (filter (complement pr) coll)])
+;; no need to mention whitespace in SUM
+(defrule SUM
+  (mkalt
+   (mkret
+    (mkseq
+     (mkbind #'PRODUCT :p)
+     #'PLUS
+     (mkbind #'SUM :s))
+    (fn [b _]
+      (+ (:p b) (:s b))))
+   (mkret
+    (mkseq
+     (mkbind #'PRODUCT :p)
+     #'MINUS
+     (mkbind #'SUM :s))
+    (fn [b _]
+      (- (:p b) (:s b))))
+   #'PRODUCT))
 
-;; an addition expression is a + followed by arguments
-;; args will recursively optimize the arguments
-(defrule addition [(mklit '+) {:args args}]
-                   ;;find the literal numbers
-  #{(fn [b c]
-      (let [[nums other] (separate number? (:args b))
-            sum (apply + nums)]
-        (cond
-         ;; if there are only numbers, we
-         ;; don't need to add at runtime
-         (nil? (seq other))
-         sum
-         ;; if the sum is zero and only one
-         ;; other term, we don't need to add
-         (and (zero? sum) (nil? (rest other)))
-         (first other)
-         ;; if the sum is zero, just add the
-         ;; other terms
-         (zero? sum)
-         `(+ ~@other)
-         ;; otherwise, return the addition
-         :otherwise 
-         `(+ ~sum ~@other))))})
+(defrule PRODUCT
+  (mkalt
+   (mkret
+    (mkseq
+     (mkbind #'TERM :t)
+     #'SLASH
+     (mkbind #'PRODUCT :p))
+    (fn [b _] (/ (:t b) (:p b))))
+   (mkret
+    (mkseq
+     (mkbind #'PREFIX :t)
+     #'STAR
+     (mkbind #'PRODUCT :p))
+    (fn [b _] (* (:t b) (:p b))))
+   #'PREFIX))
+(defrule PREFIX
+  (mkalt
+   (mkret
+    (mkseq #'PLUS (mkbind #'TERM :i))
+    (fn [b _] (:i b)))
+   (mkret
+    (mkseq #'MINUS (mkbind #'TERM :i))
+    (fn [b _] (- (:i b))))
+   #'TERM))
+(defrule TERM
+  (mkalt
+   (mkseq
+    (mknothing #'OPEN)
+    #'SUM
+    (mknothing #'CLOSE))
+   #'NUMBER))
 
-(defrule multiplication  [(mklit '*) {:args args}]
-  ;;find the literal numbers
-  #{(fn [b c]
-      (let [[nums other] (separate number? (:args b))
-            prod (apply * nums)]
-        (cond
-         ;; if there are only numbers, we
-         ;; don't need to multiply at runtime
-         (nil? (seq other))
-         prod
-         ;; if the prod is zero, we return 0
-         (zero? prod)
-         0
-         ;; if the prod is 1, we don't need
-         ;; it
-         (and (= 1 prod) (nil? (rest other)))
-         (first other)
-         (= 1 prod)
-         `(* ~@other)
-         ;; otherwise, return the addition
-         :otherwise 
-         `(* ~prod ~@other))))})
+;; we test for decimal first to ensure proper matching
+(defrule NUMBER
+  (mkalt #'DECIMAL #'INTEGER))
 
-(defrule fncall
-  [{:sym match-symbol} {:args args}] #{(fn [b c]
-                                         `(~(:sym b) ~@(:args b)))})
+;; our "tokens" know about whitespace
+(defrule INTEGER
+  (mkret
+   (mkseq (mk1om digit) w*)
+   (fn [b _]
+     (Long/parseLong (:ret b)))))
+(defrule DECIMAL
+  (mkret
+   (mkseq
+    (mkalt
+     (mkseq (mk1om digit) #'POINT (mk1om digit))
+     (mkseq               #'POINT (mk1om digit))
+     (mkseq (mk1om digit) #'POINT))
+    w*)
+   (fn [b _]
+     (Double/parseDouble (:ret b)))))
 
-;; match all args up to the end
-(defrule args [{expr *} end])
+(defrule OPEN  (mkseq (mklit \() w*))
+(defrule CLOSE (mkseq (mklit \)) w*))
+(defrule PLUS  (mkseq (mklit \+) w*))
+(defrule MINUS (mkseq (mklit \-) w*))
+(defrule STAR  (mkseq (mklit \*) w*))
+(defrule SLASH (mkseq (mklit \/) w*))
+
+(defrule POINT (mklit \.))

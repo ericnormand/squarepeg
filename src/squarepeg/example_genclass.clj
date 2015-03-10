@@ -1,9 +1,9 @@
 (ns squarepeg.example-genclass
-  (:use squarepeg.core)
+  (:require [squarepeg.core :refer :all])
   (:gen-class
    :name parsezero))
 
-(defrule eatme \0)
+(defrule eatme (mklit 0))
 
 (defn -eatme [this input]
   (eatme input))
