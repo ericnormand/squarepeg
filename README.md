@@ -1,18 +1,5 @@
 #squarepeg
 
-## Credits and Acknowledgements
-
-This software was written by Eric Normand and is released under the
-[Eclipse Public License]. You can [find it on github][github].
-
-[github]: http://github.com/ericnormand/squarepeg
-
-[Eclipse Public License]: http://opensource.org/licenses/eclipse-1.0.php
-
-Special thanks also goes to [Christophe Grand][cgrand] for his help.
-
-[cgrand]: http://clj-me.cgrand.net/
-
 ## Quickstart
 
 ### To use in your project.
@@ -352,3 +339,22 @@ normal rule.
 See RELEASENOTES.md for a history of the project.
 
 See FUTUREPLANS.md to know where the project is headed.
+
+## License, Credits, and Acknowledgements
+
+Copyright (c) Eric Normand, Rich Hickey & contributors.  The use and
+distribution terms for this software are covered by the
+[Eclipse Public License 1.0](http://opensource.org/licenses/eclipse-1.0.php)
+which can be found in the file
+[epl-v10.html](https://raw.githubusercontent.com/ericnormand/squarepeg/master/epl-v10.html)
+at the root of this distribution.  By using this software in any
+fashion, you are agreeing to be bound by the terms of this license.
+
+You must not remove this notice, or any other, from this software.
+
+[Eclipse Public License]: http://opensource.org/licenses/eclipse-1.0.php
+
+Special thanks also goes to [Christophe Grand][cgrand] for his help.
+
+[cgrand]: http://clj-me.cgrand.net/
+
