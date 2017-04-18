@@ -1,4 +1,4 @@
-#squarepeg
+# squarepeg
 
 ## Credits and Acknowledgements
 
@@ -55,7 +55,7 @@ class file for use with Java.
 NOTE: squarepeg used to be called clj-peg! But then I realized the
 name was taken. Now I have a name without a hyphen.
 
-##How it works
+## How it works
 
 squarepeg is defined in terms of combinators. Each combinator is a
 function which generates an atomic unit of a parser (called a
@@ -70,7 +70,7 @@ monadic combinator library, there are plenty around.
 
 First, we'll go over some basic concepts.
 
-###Rules
+### Rules
 
 A rule is a function of four arguments, input, bindings, context and
 memo.
@@ -86,7 +86,7 @@ Memo is a map used for memoization.
 A rule should return (success . . .) or (fail msg) with a failure
 message.
 
-###Success
+### Success
 
 Success is defined as a map of five keys, :i, :b, :r, :s, and :m.
 
@@ -138,11 +138,11 @@ the failure message and the memo object, respectively.
 
 Use <code>failure?</code> to determine if a rule failed.
 
-###Combinators
+### Combinators
 
 Combinators are functions that generate rules.
 
-####Built-in combinators
+#### Built-in combinators
 
 Combinators are defined in src/squarepeg/core.clj
 
@@ -316,7 +316,7 @@ Example:
     (def selectstmt (mkscope (mkmemo (mkret (mkseq [(mkstr "SELECT") w+
        (mkmatch (mk1om anything))]) (fn [b c] (lookup (:match b))))))
 
-###Predefined rules
+### Predefined rules
 
 Here are the predefined rules that may come in handy.
 
@@ -333,7 +333,7 @@ and returns it.
 
 <code>digit</code> matches a single character that is a digit.
 
-###Utility
+### Utility
 
 <code>mkfn</code> creates a function that is a little bit more
 friendly to call yourself but is still valid as a rule.
@@ -347,7 +347,7 @@ value if it succeeds.
 When called with input, bindings, context, and memo, it acts as a
 normal rule.
 
-##Other documents
+## Other documents
 
 See RELEASENOTES.md for a history of the project.
 
